@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { HouseholdResult, Platform, SpendingPosition } from '../engine/types'
 import { SPENDING_CATEGORIES, fmtBillions, resolvedSpending, scorerLabel } from '../engine/spending'
 import { FISCAL_2025, RECEIPT, RECEIPT_SOURCE } from '../data/spending'
@@ -31,6 +32,8 @@ function costText(sp: SpendingPosition): string | null {
  * spending side. Nothing here is summed into the headline number.
  */
 export function BeyondPaycheck({ baseline, results, all, onShowPositions }: Props) {
+  // One inheritance-chain walk per platform instead of one per table cell.
+  const spendingOf = useMemo(() => new Map(results.map(({ platform }) => [platform.id, resolvedSpending(platform, all)])), [results, all])
   const incomeTax = Math.max(0, baseline.federalIncomeTax)
   const payroll = baseline.payrollTax
   const receiptRows = RECEIPT.map((r) => ({ ...r, dollars: incomeTax * r.share }))
@@ -135,7 +138,7 @@ export function BeyondPaycheck({ baseline, results, all, onShowPositions }: Prop
                         {cat.label}
                       </td>
                       {results.map(({ platform }) => {
-                        const sp = resolvedSpending(platform, all).find((x) => x.category === cat.id)
+                        const sp = spendingOf.get(platform.id)?.find((x) => x.category === cat.id)
                         const d = DIR[sp?.direction ?? 'none']
                         const cost = sp ? costText(sp) : null
                         const tip = sp
@@ -172,7 +175,7 @@ export function BeyondPaycheck({ baseline, results, all, onShowPositions }: Prop
       {results.length > 0 && (
         <ul className="mt-5 grid gap-3 md:grid-cols-2">
           {results.map(({ platform }) => {
-            const rows = resolvedSpending(platform, all).filter((s) => s.direction !== 'none')
+            const rows = (spendingOf.get(platform.id) ?? []).filter((s) => s.direction !== 'none')
             return (
               <li key={platform.id} className="rounded-lg border border-rule-2 p-3 text-sm">
                 <div className="flex items-center gap-2">

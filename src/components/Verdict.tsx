@@ -7,11 +7,12 @@ import { SPENDING_CATEGORIES, resolvedSpending } from '../engine/spending'
 
 /** "spend more on X and Y, less on Z" for the spending clause. */
 function spendingClause(platform: Platform, all: Platform[]): string | null {
-  const rows = resolvedSpending(platform, all).filter((s) => s.category !== 'deficit')
+  const spending = resolvedSpending(platform, all)
+  const rows = spending.filter((s) => s.category !== 'deficit')
   const label = (id: string) => SPENDING_CATEGORIES.find((c) => c.id === id)?.label.toLowerCase().replace(' & ', ' and ') ?? id
   const more = rows.filter((s) => s.direction === 'more').map((s) => label(s.category))
   const less = rows.filter((s) => s.direction === 'less').map((s) => label(s.category))
-  const deficit = resolvedSpending(platform, all).find((s) => s.category === 'deficit')
+  const deficit = spending.find((s) => s.category === 'deficit')
   const parts: string[] = []
   if (more.length) parts.push(`spend more on ${list(more)}`)
   if (less.length) parts.push(`less on ${list(less)}`)

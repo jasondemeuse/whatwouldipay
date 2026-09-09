@@ -550,6 +550,7 @@ a dead `rate` field that `stateTax.ts:44` never reads (`states.ts:103` ID, `:163
 flagged as known-biased; model HoH, or document the gap.
 
 **M13 — Attribution runs eagerly for every selected platform on every keystroke.**
+*Status 2026-09-09: re-measured at 3.84 ms per keystroke for 8 platforms (the URL cap) with calculate plus attribution. Left eager; not worth the extra memo layer.*
 `src/App.tsx:88-100`
 
 `attribute()` does `structuredClone(PolicyParams)` + a full `calculate()` **per position** — 136
@@ -613,6 +614,7 @@ baseline.
 ### React and UI
 
 **M17 — Nothing below `App` is memoized, and the expensive work is in the leaves.**
+*Status 2026-09-09: dataset counts moved to module constants; `resolvedSpending` now runs once per platform in `BeyondPaycheck` and `Verdict`; persona matching compares fields instead of JSON strings. The remaining items are cosmetic at current sizes.*
 Zero `useCallback` and zero `React.memo` in all of `src/`. Every keystroke re-renders `ResultsView`
 (364 lines), `LeverMatrix`, `BeyondPaycheck`, `AssumptionsPanel` and the 57-line inline `Methodology`.
 - `BeyondPaycheck.tsx:138` calls `resolvedSpending(platform, all)` **inside a nested map** — 7 categories

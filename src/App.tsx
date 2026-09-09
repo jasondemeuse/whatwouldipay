@@ -30,6 +30,9 @@ const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 const STORAGE_KEY = 'wwip:v1'
 
 const PLATFORM_IDS = new Set(PLATFORMS.map((p) => p.id))
+// Dataset facts shown in the hero; module constants because the dataset never changes at runtime.
+const POLITICIAN_COUNT = PLATFORMS.filter((p) => p.kind === 'politician').length
+const SOURCE_COUNT = new Set(PLATFORMS.flatMap((p) => p.positions.flatMap((x) => x.citations.map((c) => c.url)))).size
 
 /** Initial state: URL beats saved state beats defaults. */
 function load(): { household: Household; selected: string[]; assumptions: Assumptions } | null {
@@ -118,8 +121,6 @@ export default function App() {
   const singlePayerSelected = results.some((r) => r.result.effectiveCoverage === 'singlePayer')
   const closeExplain = () => setExplainFor(null)
 
-  const politicianCount = PLATFORMS.filter((p) => p.kind === 'politician').length
-  const sourceCount = new Set(PLATFORMS.flatMap((p) => p.positions.flatMap((x) => x.citations.map((c) => c.url)))).size
   const isMethodology = route.startsWith('#/methodology')
   const householdLabel = `${household.filingStatus === 'mfj' ? 'Married couple' : household.filingStatus === 'hoh' ? 'Head of household' : 'Single filer'}, ${usdShort(
     baseline.grossIncome,
@@ -171,7 +172,7 @@ export default function App() {
                 Tax year 2026, current law after the 2025 tax act
               </li>
               <li className="rounded-full border border-rule bg-card px-2.5 py-1">
-                {politicianCount} politicians · 5 party baselines · {sourceCount} sources
+                {POLITICIAN_COUNT} politicians · 5 party baselines · {SOURCE_COUNT} sources
               </li>
               <li className="rounded-full border border-rule bg-card px-2.5 py-1">
                 Updated <time dateTime={SITE.modelUpdated}>{SITE.modelUpdatedLabel}</time>

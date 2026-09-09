@@ -24,11 +24,24 @@ const COVERAGE: Array<{ v: HealthCoverage; label: string }> = [
   { v: 'uninsured', label: 'Uninsured' },
 ]
 
+/** Field-by-field equality that does not depend on key order (JSON.stringify would). */
+function sameHousehold(a: Household, b: Household): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]) as Set<keyof Household>
+  for (const k of keys) {
+    const x = a[k]
+    const y = b[k]
+    if (Array.isArray(x) || Array.isArray(y)) {
+      if (JSON.stringify(x ?? []) !== JSON.stringify(y ?? [])) return false
+    } else if (x !== y) return false
+  }
+  return true
+}
+
 export function HouseholdForm({ value, onChange }: Props) {
   const set = <K extends keyof Household>(k: K, v: Household[K]) => onChange({ ...value, [k]: v })
   // Spouse income and age only enter the calculation on a joint return; a separate return is computed for one filer.
   const joint = value.filingStatus === 'mfj'
-  const activePersona = PERSONAS.find((p) => JSON.stringify(p.household) === JSON.stringify(value))?.id
+  const activePersona = PERSONAS.find((p) => sameHousehold(p.household, value))?.id
 
   const money = (k: keyof Household, label: string, hint?: string, width: 'sm' | 'md' = 'md') => (
     <MoneyField

@@ -122,7 +122,8 @@ export const BASELINE_2026: PolicyParams = {
   },
 
   payroll: {
-    // [SSA] 2026 wage base $184,500; [IRS-AM] 0.9% thresholds not indexed
+    // [SSA] 2026 wage base $184,500, confirmed 2026-09-09 against IRS Tax Topic 751
+    // (https://www.irs.gov/taxtopics/tc751: "For earnings in 2026, this base limit is $184,500."); [IRS-AM] 0.9% thresholds not indexed
     ssRateEmployee: 0.062,
     ssWageBase: 184500,
     ssDonutHoleStart: null,
