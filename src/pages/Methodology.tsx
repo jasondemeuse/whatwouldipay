@@ -124,6 +124,14 @@ export function MethodologyPage() {
             not cosponsoring a bill the party backs) keeps current law instead.
           </li>
           <li>
+            <strong className="text-ink">Who is included.</strong> A politician is listed when, as of the model date, they were being openly discussed
+            as a 2028 presidential contender in national polling or prediction markets and had enough of a published record in the areas this tool
+            prices to model. That criterion cuts both ways: Jon Ossoff stays although he has said he is not running, because markets rank him first
+            and his record is thick; Rahm Emanuel, Tucker Carlson, James Talarico, Raphael Warnock and Donald Trump Jr. are out, not because they
+            are unlikely, but because none has a citable position in these areas yet. Horse-race ordering is contested and moves monthly (Rubio
+            led Vance in some June 2026 markets; Vance led among conservative voters in an August 2026 poll), so roles show office, not rank.
+          </li>
+          <li>
             <strong className="text-ink">Attribution.</strong> The "Why?" bridge applies positions one at a time in a fixed order and records the
             change after each, so the bars always sum to the total. When a position changes nothing for you, we say why, using your own numbers
             against the position's thresholds.

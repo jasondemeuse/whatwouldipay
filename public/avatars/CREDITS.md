@@ -19,6 +19,7 @@ each has been cropped to a square and resized. Nobody depicted endorses this too
 | Josh Shapiro | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) | Maryland GovPics | [source](https://commons.wikimedia.org/wiki/File:Josh_Shapiro_December_2025_(cropped).jpg) |
 | Kamala Harris | Public domain | Lawrence Jackson | [source](https://commons.wikimedia.org/wiki/File:Kamala_Harris_Vice_Presidential_Portrait.jpg) |
 | Marco Rubio | Public domain | U.S. Department of State | [source](https://commons.wikimedia.org/wiki/File:Official_portrait_of_Secretary_Marco_Rubio.jpg) |
+| Mark Kelly | Public domain (US government work, 17 U.S.C. § 105) | US Congress / GPO | [source](https://unitedstates.github.io/images/congress/original/K000377.jpg) |
 | Nikki Haley | Public domain | United States Department of State | [source](https://commons.wikimedia.org/wiki/File:Nikki_Haley_official_photo.jpg) |
 | Pete Buttigieg | Public domain | United States Department of Transportation | [source](https://commons.wikimedia.org/wiki/File:Pete_Buttigieg,_Secretary_of_Transportation.jpg) |
 | Rand Paul | Public domain (US government work, 17 U.S.C. § 105) | US Congress / GPO | [source](https://unitedstates.github.io/images/congress/original/P000603.jpg) |

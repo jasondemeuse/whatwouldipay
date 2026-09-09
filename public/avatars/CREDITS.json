@@ -218,5 +218,16 @@
     "attributionRequired": false,
     "modified": "cropped to a square and resized to 256px",
     "fetched": "2026-09-09"
+  },
+  "kelly": {
+    "name": "Mark Kelly",
+    "file": "kelly.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/K000377.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
   }
 }

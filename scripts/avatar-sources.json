@@ -124,6 +124,12 @@
       "bioguide": "G000574"
     },
     {
+      "id": "kelly",
+      "name": "Mark Kelly",
+      "kind": "congress",
+      "bioguide": "K000377"
+    },
+    {
       "id": "sanders",
       "name": "Bernie Sanders",
       "kind": "congress",

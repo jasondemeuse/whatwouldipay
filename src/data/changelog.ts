@@ -3,6 +3,11 @@ export const CHANGELOG: Array<{ date: string; summary: string }> = [
   {
     date: '2026-09-09',
     summary:
+      'Sourcing pass. Restored the governors’ tariff positions with specific citations (Beshear and Pritzker: repeal; Moore and Whitmer: targeted, on their own words) and Beshear’s ACA position; Shapiro and Whitmer re-cited to the PA Department of Revenue and Michigan 2023 PA 4 instead of Wikipedia, with Shapiro’s unverified corporate-tax acceleration claim dropped. Added Mark Kelly (five cited positions). Recorded Ossoff’s denial alongside his market standing, and stated the inclusion criterion on the methodology page. Social Security wage base confirmed against IRS Tax Topic 751.',
+  },
+  {
+    date: '2026-09-09',
+    summary:
       'Pre-release review fixes. Engine: married-filing-separately filers no longer get the tips, overtime or senior deductions (joint-return rules); Social Security benefits taxed by the §86 provisional-income tiers instead of a flat 85%; Wisconsin adults under 100% of poverty treated as covered (BadgerCare waiver), not in a coverage gap; mixed-age couples priced per adult. Platforms: Sanders/progressive lane now models the full 40/45/50/52% schedule, capital gains as ordinary income above $250k, and the Social Security Expansion Act’s 16.2% investment income tax (verified against S.770); Democratic/Harris NIIT increase applies above $400k; Booker’s exemption sized against income with the 41%/43% offset; Rubio’s 2016 plan recorded as history rather than applied; Vance modeled at the enacted $2,200 credit; Hawley’s tariff rebate not modeled (funding struck down); unfunded platforms (Libertarian, Rand Paul) flagged. Positions without a specific citation were removed pending sources.',
   },
   {

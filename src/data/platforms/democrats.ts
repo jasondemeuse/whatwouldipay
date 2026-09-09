@@ -5,6 +5,7 @@ import {
 } from './helpers'
 
 const SSEA_COSPONSORS = cite('S.770 (119th) Social Security Expansion Act: cosponsors', 'https://www.congress.gov/bill/119th-congress/senate-bill/770/cosponsors', '2025')
+const MI_PA4_2023 = cite('Michigan Legislature: 2023 Public Act 4 (Lowering MI Costs), amending MCL 206.30 and 206.272', 'https://www.legislature.mi.gov/documents/2023-2024/publicact/htm/2023-PA-0004.htm', '2023-03-07')
 
 export const AOC: Platform = {
   id: 'aoc',
@@ -44,7 +45,7 @@ export const OSSOFF: Platform = {
   shortName: 'Ossoff',
   kind: 'politician',
   party: 'D',
-  role: 'U.S. Senator, Georgia (has said he is not running)',
+  role: 'U.S. Senator, Georgia (says he is not running; leads 2028 prediction markets)',
   inheritsFrom: 'party-dem',
   description:
     'A moderate with a thin federal tax record; where he has no position of his own, the Democratic baseline applies and is labeled as such. Supports restoring the ACA credits and a public option, explicitly opposes Medicare for All, is not a cosponsor of the American Family Act or the Social Security Expansion Act, and opposes broad tariffs while backing targeted ones on Chinese solar.',
@@ -59,6 +60,9 @@ export const OSSOFF: Platform = {
     note('singlePayer', 'Explicitly opposes Medicare for All; supports the ACA plus "a strong Public Option" while keeping private insurance.', 'high', [
       cite('Wikipedia: Jon Ossoff', 'https://en.wikipedia.org/wiki/Jon_Ossoff'),
     ]),
+  ],
+  notes: [
+    'Included despite his own denial: "I have zero interest in running for president in 2028" (press call, 2026-07-23; USA Today via AOL, aol.com/articles/ossoff-says-wont-run-2028-181819000.html). As of late August 2026 he nonetheless led Democratic prediction markets (~17%) with the best net favorability in the field (YouGov, +7; Newsweek, 2026-08-30). The tool prices the platform, not the odds.',
   ],
 }
 
@@ -134,16 +138,16 @@ export const SHAPIRO: Platform = {
   role: 'Governor of Pennsylvania',
   inheritsFrom: 'party-dem',
   description:
-    'Essentially no federal tax or healthcare record. Pennsylvania keeps its 3.07% flat tax; his most distinctive position is accelerating the state corporate tax cut toward 4.99%. Everything federal falls back to the Democratic baseline.',
+    'Essentially no federal tax or healthcare record. Pennsylvania keeps its 3.07% flat tax and is phasing its corporate rate down to 4.99% by 2031 under a schedule that predates him. Everything federal falls back to the Democratic baseline.',
   positions: [
-    note('incomeRates', 'No federal position; no proposal to change Pennsylvania’s 3.07% flat income tax.', 'low', [
-      cite('Wikipedia: Josh Shapiro', 'https://en.wikipedia.org/wiki/Josh_Shapiro'),
+    note('incomeRates', 'Pennsylvania levies a 3.07% flat personal income tax (PA Department of Revenue); no federal rate proposal located.', 'low', [
+      cite('PA Department of Revenue: Personal Income Tax', 'https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/personal-income-tax.html'),
     ]),
-    note('other', 'Supports accelerating Pennsylvania’s corporate net income tax phase-down toward 4.99% (cuts to his right).', 'high', [
-      cite('Wikipedia: Josh Shapiro', 'https://en.wikipedia.org/wiki/Josh_Shapiro'),
+    note('other', 'Pennsylvania’s corporate net income tax is phasing down by statute: 7.49% in 2026, 0.5 points a year to 4.99% in 2031 (state-level). Reports that he wants to reach 4.99% sooner could not be tied to a citable proposal.', 'high', [
+      cite('PA Department of Revenue: Corporate Net Income Tax', 'https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/corporation-taxes/corporate-net-income-tax.html'),
     ]),
   ],
-  notes: ['Pennsylvania state CTC/EITC parameters could not be verified this session.'],
+  notes: ['Pennsylvania state CTC/EITC parameters could not be verified.', 'The claim, repeated in secondary sources, that he supports accelerating the corporate phase-down is not modeled: no primary source was located (checked 2026-09-09).'],
 }
 
 export const BUTTIGIEG: Platform = {
@@ -184,17 +188,16 @@ export const WHITMER: Platform = {
   role: 'Governor of Michigan',
   inheritsFrom: 'party-dem',
   description:
-    'State record: raised Michigan’s EITC from 6% to 30% of the federal credit and repealed the state retirement tax (2023). No federal tax positions; her tariff stance could not be verified this session, so the party default applies.',
+    'State record: raised Michigan’s EITC from 6% to 30% of the federal credit and repealed the state retirement tax (2023). Calls the 2025-26 tariffs "a tax hike on Michigan families" but has not ruled out targeted tariffs, so she is modeled as keeping strategic ones. No federal tax positions of her own.',
   positions: [
-    note('eitc', 'Raised Michigan’s EITC from 6% to 30% of the federal credit in a $1B 2023 package (state-level; federal position not stated).', 'high', [
-      cite('Wikipedia: Gretchen Whitmer', 'https://en.wikipedia.org/wiki/Gretchen_Whitmer'),
-    ]),
-    note('socialSecurityBenefits', 'Repealed Michigan’s "retirement tax" on pension income (2023).', 'high', [
-      cite('Wikipedia: Gretchen Whitmer', 'https://en.wikipedia.org/wiki/Gretchen_Whitmer'),
-    ]),
+    note('eitc', 'Signed 2023 PA 4 (the "Lowering MI Costs" plan): Michigan EITC raised from 6% to 30% of the federal credit for tax years after 2022 (state-level; federal position not stated).', 'high', [MI_PA4_2023]),
+    note('socialSecurityBenefits', 'Same act phases out Michigan’s "retirement tax" on pension income, 2023 to 2026 (state-level).', 'high', [MI_PA4_2023]),
+    pos('tariffs', 'Keep targeted, drop broad: "These tariffs act as a tax hike on Michigan families and businesses" (Aug 2026), while declining to rule tariffs out as a tool for autos and steel (AP, Apr 2025).', 'medium', [
+      cite('Yahoo News: Whitmer slams Trump tariffs', 'https://www.yahoo.com/news/politics/articles/gretchen-whitmer-slams-trump-failed-033023184.html', '2026-08-22'),
+    ], tariffs(TARIFF.targeted)),
   ],
   notes: [
-    'Has repeatedly opposed the 2025–26 tariffs in public statements (per news coverage); a specific citable statement has not yet been added, so the Democratic baseline tariff stance applies for now.',
+    'Her tariff position is genuinely two-sided: she opposed the across-the-board tariffs while saying in April 2025 that she "understands the motivation" behind targeted ones. Coded as targeted rather than repeal so as not to overstate her.',
   ],
 }
 
@@ -215,9 +218,12 @@ export const PRITZKER: Platform = {
     note('ctc', 'Signed Illinois’ first state CTC (P.A. 103-0592): 20% of the state EITC in 2024, 40% in 2025, for children under 12.', 'high', [
       cite('Illinois Department of Revenue: Child Tax Credit', 'https://tax.illinois.gov/individuals/credits/child-tax-credit.html'),
     ]),
+    pos('tariffs', 'Repeal: wrote to Trump demanding $1,700-per-family tariff refunds for Illinois households; "there is no portal to request a refund for a mother in Rockford."', 'high', [
+      cite('Capitol News Illinois: Pritzker seeks tariff refunds', 'https://capitolnewsillinois.com/news/pritzker-pens-letter-to-trump-seeking-tariff-refunds-for-illinois-families/', '2026-08-06'),
+    ], tariffs(TARIFF.repeal)),
   ],
   notes: [
-    'Has called the 2025 tariffs "a tax increase on consumers" and sought per-household refunds (2026); a specific citable release has not yet been added, so the Democratic baseline tariff stance applies for now.',
+    'No citable position of his own on the OBBBA Medicaid cuts or work requirements was located (checked 2026-09-09); the Democratic baseline applies there and is labeled as such.',
     'Signed a $35 insulin copay cap (2023); declined to propose a state wealth or capital-gains surtax in the Feb 2026 budget.',
   ],
 }
@@ -231,14 +237,24 @@ export const BESHEAR: Platform = {
   role: 'Governor of Kentucky',
   inheritsFrom: 'party-dem',
   description:
-    'Fiscally moderate at the state level (signed Kentucky’s flat-tax cuts from 5% to 3.5%) with a strong record against Medicaid work requirements. He has no federal tax proposals of his own, so the federal numbers here are the Democratic baseline, labeled as party defaults.',
+    'Fiscally moderate at the state level (signed Kentucky’s flat-tax cuts from 5% to 3.5%) with a strong record against Medicaid work requirements. Wants the 2025-26 tariffs rescinded outright and the enhanced ACA credits extended. He has no federal tax proposals of his own, so the income-tax numbers here are the Democratic baseline, labeled as party defaults.',
   positions: [
     note('incomeRates', 'Signed Kentucky income-tax cuts 5% → 4.5% → 4.0% → 3.5% (2026) after vetoing the first; no federal position.', 'high', [
       cite('Kentucky Legislature: HB 1 (2025)', 'https://apps.legislature.ky.gov/record/25RS/hb1.html', '2025-02-06'),
     ]),
+    pos('tariffs', 'Repeal: formally asked Trump to rescind the tariff and trade program; "it is the American consumer, not the foreign exporter, who pays," more than $2,500 per family in 2026.', 'high', [
+      cite('Office of the Governor of Kentucky: letter to President Trump on tariffs and trade (PDF)', 'https://governor.ky.gov/attachments/20260902_Ltr-to-Pres-Trump_Tariffs-and-Trade.pdf', '2026-09-02'),
+      cite('WYMT: Beshear asks Trump to rescind tariff and trade policies', 'https://www.wymt.com/2026/09/02/gov-beshear-sends-letter-trump-asking-him-rescind-harmful-tariff-trade-policies/', '2026-09-02'),
+    ], tariffs(TARIFF.repeal)),
+    pos('aca', 'Restore the enhanced credits: "the idea that this Congress would vote to extend tax cuts for the wealthy, but not tax credits for hard-working Americans so that they can see a doctor, that’s just wrong."', 'high', [
+      cite('LEX 18: Beshear urges Congress to extend health insurance tax credits', 'https://www.lex18.com/news/covering-kentucky/beshear-urges-congress-to-extend-health-insurance-tax-credits-as-senate-vote-looms'),
+    ], restoreEnhancedAca),
+    note('medicaid', 'Reversed planned Kentucky Medicaid cuts in the state budget (Jul 2026). His federal position on the OBBBA cuts is not separately cited, so the Democratic baseline applies for the dollar effect.', 'medium', [
+      cite('Yahoo News: Beshear reverses planned Medicaid cuts', 'https://www.yahoo.com/news/politics/articles/beshear-reverses-planned-medicaid-cuts-233516717.html', '2026-07-22'),
+    ]),
   ],
   notes: [
-    'Rescinded Kentucky’s Medicaid work-requirement waiver (2019), vetoed a 2025 state work-requirement bill, and joined the multistate suit against the federal rule; has opposed the 2025–26 tariffs and urged Congress to extend the ACA credits. Specific citable releases have not yet been added, so the Democratic baseline applies for those areas.',
+    'Rescinded Kentucky’s Medicaid work-requirement waiver (2019) and vetoed a 2025 state work-requirement bill. Whether Kentucky joined the 25-state suit against the federal medically-frail rule (Jun 2026) could not be confirmed, so that is not claimed.',
     'Signed HB 95 (2021) capping insulin copays at $35 for state-regulated plans.',
   ],
 }
@@ -252,14 +268,17 @@ export const MOORE: Platform = {
   role: 'Governor of Maryland',
   inheritsFrom: 'party-dem',
   description:
-    'The only figure here who has signed a tax increase on high earners: new 6.25% and 6.5% Maryland brackets above $500k/$1M plus a 2% capital-gains surtax above $350k AGI (2025). Demanded tariff reimbursement (~$1,744 per Maryland household).',
+    'The only figure here who has signed a tax increase on high earners: new 6.25% and 6.5% Maryland brackets above $500k/$1M plus a 2% capital-gains surtax above $350k AGI (2025). Demanded tariff reimbursement (~$1,744 per Maryland household) while calling tariffs "a tool of international trade," so he is modeled as keeping targeted ones.',
   positions: [
     note('incomeRates', 'Signed HB 352 (2025): new Maryland brackets of 6.25% above $500k and 6.5% above $1M (state-level; no federal position).', 'high', [SRC.mdHb352]),
     note('capitalGains', 'Maryland 2% surtax on net capital gains for filers with federal AGI over $350,000 (2025, state-level).', 'high', [SRC.mdHb352]),
     note('ctc', 'Smoothed Maryland’s $500 refundable child credit phase-out ($15k–$24k AGI, state-level).', 'high', [SRC.mdHb352]),
+    pos('tariffs', 'Keep targeted, drop broad: with the state comptroller, demanded reimbursement for tariffs struck down by the Supreme Court; "while tariffs are a tool of international trade, the Trump-Vance Administration has waged war on our families."', 'high', [
+      cite('Fox Baltimore: Moore and comptroller demand tariff reimbursement', 'https://foxbaltimore.com/news/local/gov-moore-comptroller-demand-reimbursement-from-president-trump-for-illegal-tariffs', '2026-02-26'),
+    ], tariffs(TARIFF.targeted)),
   ],
   notes: [
-    'Demanded federal reimbursement of Maryland’s tariff costs (Feb 2026); a specific citable release has not yet been added, so the Democratic baseline tariff stance applies for now.',
+    'Coded as targeted rather than repeal because his own statement accepts tariffs as a legitimate tool; the objection is to the broad 2025 program.',
     'Maryland corporate rate unchanged at 8.25%; retains both an estate tax and an inheritance tax.',
   ],
 }
@@ -324,6 +343,36 @@ export const GALLEGO: Platform = {
   ],
 }
 
+export const KELLY: Platform = {
+  id: 'kelly',
+  name: 'Mark Kelly',
+  shortName: 'Kelly',
+  kind: 'politician',
+  party: 'D',
+  role: 'U.S. Senator, Arizona',
+  inheritsFrom: 'party-dem',
+  description:
+    'Cosponsor of the American Family Act and the caucus bill restoring the ACA credits and reversing the OBBBA health cuts; calls tariffs "a billion-dollar tax on Arizona working families." Nothing on the record about the top rate, capital gains or the Social Security wage base, so those fall back to the Democratic baseline or current law and are labeled as such.',
+  positions: [
+    pos('ctc', 'Cosponsor of the American Family Act: $6,360 / $4,320 / $3,600, fully refundable (modeled as $3,600, plus $720 per child under 6).', 'high', [
+      cite('Kelly: backs efforts to cut taxes for parents and working Americans', 'https://www.kelly.senate.gov/newsroom/press-releases/kelly-backs-efforts-to-cut-taxes-for-parents-working-americans/', '2025-04-10'),
+      SRC.afa,
+    ], ctcAmericanFamilyAct),
+    pos('tariffs', 'Repeal: tariffs "are a billion-dollar tax on Arizona working families" that "will raise food prices"; cosponsored small-business tariff relief (Sep 2025).', 'high', [
+      cite('Kelly: tomato tariffs will raise food prices, kill Arizona jobs', 'https://www.kelly.senate.gov/newsroom/press-releases/kelly-tomato-tariffs-will-raise-food-prices-kill-arizona-jobs/', '2025-07-14'),
+    ], tariffs(TARIFF.repeal)),
+    pos('aca', 'Restore the enhanced credits: "protect working families from skyrocketing health care costs or let premiums double or even triple" (300,000+ Arizonans affected).', 'high', [
+      cite('Kelly: statement after Republicans block extension of health care tax credits', 'https://www.kelly.senate.gov/newsroom/press-releases/kelly-statement-after-republicans-block-extension-of-health-care-tax-credits/', '2025-12-11'),
+      SRC.gallegoAca,
+    ], restoreEnhancedAca),
+    pos('medicaid', 'Reverse the OBBBA Medicaid cuts (Arizona faces a 19% funding reduction by 2034); cosponsor of the caucus reversal bill.', 'high', [
+      cite('Kelly, Gillibrand and colleagues demand answers on the impact of Medicaid cuts', 'https://www.kelly.senate.gov/newsroom/press-releases/kelly-gillibrand-colleagues-demand-answers-on-impact-of-trump-medicaid-cuts/', '2026-07-01'),
+      SRC.gallegoAca,
+    ], reverseHealthCuts),
+    hold('payroll', 'Not a cosponsor of the Social Security Expansion Act; his Social Security record is defensive (field offices, benefit disruptions, WEP/GPO repeal), with nothing on the wage base.', 'low', [SSEA_COSPONSORS]),
+  ],
+}
+
 export const SANDERS: Platform = {
   id: 'sanders',
   name: 'Bernie Sanders',
@@ -366,4 +415,4 @@ export const SANDERS: Platform = {
   ],
 }
 
-export const DEMOCRATS: Platform[] = [AOC, OSSOFF, NEWSOM, HARRIS, SHAPIRO, BUTTIGIEG, WHITMER, PRITZKER, BESHEAR, MOORE, BOOKER, GALLEGO, SANDERS]
+export const DEMOCRATS: Platform[] = [AOC, OSSOFF, NEWSOM, HARRIS, SHAPIRO, BUTTIGIEG, WHITMER, PRITZKER, BESHEAR, MOORE, BOOKER, GALLEGO, KELLY, SANDERS]
