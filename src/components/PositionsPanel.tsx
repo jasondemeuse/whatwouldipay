@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Platform, PolicyArea, PolicyPosition } from '../engine/types'
+import { AREA_LABEL } from '../lib/labels'
 import { effectivePositions } from '../engine/calculate'
 import { SPENDING_CATEGORIES, fmtBillions, resolvedSpending, scorerLabel } from '../engine/spending'
 
@@ -7,43 +8,6 @@ interface Props {
   platform: Platform
   all: Platform[]
   onClose: () => void
-}
-
-export const AREA_LABEL: Record<PolicyArea, string> = {
-  incomeRates: 'Income tax rates',
-  standardDeduction: 'Standard deduction',
-  ctc: 'Child tax credit',
-  eitc: 'Earned income credit',
-  salt: 'SALT deduction cap',
-  payroll: 'Payroll taxes / Social Security',
-  tipsOvertime: 'No tax on tips & overtime',
-  capitalGains: 'Capital gains & investment taxes',
-  tariffs: 'Tariffs',
-  socialSecurityBenefits: 'Tax on Social Security benefits',
-  aca: 'ACA marketplace subsidies',
-  medicaid: 'Medicaid',
-  medicare: 'Medicare',
-  singlePayer: 'Medicare for All / public option',
-  other: 'Other',
-}
-
-/** Mid-sentence phrasing for each area ("mostly from …"), preserving proper nouns. */
-export const AREA_PHRASE: Record<PolicyArea, string> = {
-  incomeRates: 'income tax rates',
-  standardDeduction: 'the standard deduction',
-  ctc: 'the child tax credit',
-  eitc: 'the earned income credit',
-  salt: 'the SALT cap',
-  payroll: 'payroll taxes',
-  tipsOvertime: 'the tips and overtime deductions',
-  capitalGains: 'investment taxes',
-  tariffs: 'tariffs',
-  socialSecurityBenefits: 'taxes on Social Security benefits',
-  aca: 'ACA subsidies',
-  medicaid: 'Medicaid',
-  medicare: 'Medicare',
-  singlePayer: 'Medicare for All',
-  other: 'other changes',
 }
 
 const CONF: Record<PolicyPosition['confidence'], { label: string; cls: string; title: string }> = {
@@ -89,10 +53,10 @@ export function PositionsPanel({ platform, all, onClose }: Props) {
       window.removeEventListener('keydown', onKey)
       opener?.focus?.()
     }
+    // onClose is memoized by the caller; the drawer remounts per platform anyway.
   }, [onClose])
-  const positions = effectivePositions(platform, all)
   const order = Object.keys(AREA_LABEL) as PolicyArea[]
-  positions.sort((a, b) => order.indexOf(a.area) - order.indexOf(b.area))
+  const positions = [...effectivePositions(platform, all)].sort((a, b) => order.indexOf(a.area) - order.indexOf(b.area))
   const spending = resolvedSpending(platform, all)
 
   return (

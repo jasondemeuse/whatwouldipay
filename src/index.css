@@ -60,8 +60,8 @@
   scroll-padding-top: 5rem;
 }
 
-/* Reserved for a later dark theme; tokens will be redefined here. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* `dark:` utilities match both an explicit dark choice and the system-dark class set by lib/theme.ts. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .system-dark, .system-dark *));
 
 body {
   @apply bg-paper text-ink antialiased;
@@ -121,9 +121,11 @@ body {
 }
 
 @media print {
-  aside,
-  .no-print {
+  aside {
     position: static !important;
+  }
+  .no-print {
+    display: none !important;
   }
   details {
     display: block;

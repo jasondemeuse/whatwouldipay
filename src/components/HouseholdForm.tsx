@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FilingStatus, HealthCoverage, Household } from '../engine/types'
 import { STATE_LIST } from '../data/states'
 import { PERSONAS } from '../data/personas'
+import { parseMoney } from '../lib/labels'
 
 interface Props {
   value: Household
@@ -23,19 +24,10 @@ const COVERAGE: Array<{ v: HealthCoverage; label: string }> = [
   { v: 'uninsured', label: 'Uninsured' },
 ]
 
-/** Parse a typed dollar amount forgivingly: "65k", "$1,200", "2.5m" all work. Returns [value, wasReinterpreted]. */
-export function parseMoney(raw: string): [number, boolean] {
-  const s = raw.trim().toLowerCase().replace(/[$,\s]/g, '')
-  if (s === '') return [0, false]
-  const m = s.match(/^(\d*\.?\d+)\s*(k|m)?$/)
-  if (!m) return [Number(s.replace(/[^0-9.]/g, '')) || 0, true]
-  const n = Number(m[1]) * (m[2] === 'k' ? 1000 : m[2] === 'm' ? 1_000_000 : 1)
-  return [Math.round(n), m[2] !== undefined]
-}
-
 export function HouseholdForm({ value, onChange }: Props) {
   const set = <K extends keyof Household>(k: K, v: Household[K]) => onChange({ ...value, [k]: v })
-  const joint = value.filingStatus === 'mfj' || value.filingStatus === 'mfs'
+  // Spouse income and age only enter the calculation on a joint return; a separate return is computed for one filer.
+  const joint = value.filingStatus === 'mfj'
   const activePersona = PERSONAS.find((p) => JSON.stringify(p.household) === JSON.stringify(value))?.id
 
   const money = (k: keyof Household, label: string, hint?: string, width: 'sm' | 'md' = 'md') => (
@@ -93,8 +85,8 @@ export function HouseholdForm({ value, onChange }: Props) {
           </select>
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <IntField label="Your age" value={value.age} onCommit={(n) => set('age', n)} />
-          {joint && <IntField label="Spouse age" value={value.spouseAge} onCommit={(n) => set('spouseAge', n)} />}
+          <IntField label="Your age" value={value.age} max={120} onCommit={(n) => set('age', n)} />
+          {joint && <IntField label="Spouse age" value={value.spouseAge} max={120} onCommit={(n) => set('spouseAge', n)} />}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <IntField
@@ -209,14 +201,23 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-function IntField({ label, value, onCommit }: { label: string; value: number; onCommit: (n: number) => void }) {
+function IntField({ label, value, onCommit, max = 12 }: { label: string; value: number; onCommit: (n: number) => void; max?: number }) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const clamp = (raw: string) => Math.min(max, Math.max(0, Math.floor(Number(raw.replace(/[^0-9]/g, '')) || 0)))
   return (
     <Field label={label}>
       <input
         className={`${inputCls} max-w-24`}
         inputMode="numeric"
-        value={value}
-        onChange={(e) => onCommit(Math.max(0, Math.floor(Number(e.target.value.replace(/[^0-9]/g, '')) || 0)))}
+        value={draft ?? String(value)}
+        onChange={(e) => {
+          setDraft(e.target.value)
+          if (e.target.value.trim() !== '') onCommit(clamp(e.target.value))
+        }}
+        onBlur={(e) => {
+          setDraft(null)
+          onCommit(clamp(e.target.value))
+        }}
       />
     </Field>
   )

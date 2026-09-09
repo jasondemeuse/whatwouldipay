@@ -32,3 +32,21 @@ describe('url state', () => {
     expect(back.assumptions.employerPayrollPassthrough).toBe(0)
   })
 })
+
+describe('url state hardening', () => {
+  it('ignores tracking parameters instead of wiping saved state', () => {
+    expect(parse('?fbclid=abc&utm_source=x', defaults, ids)).toBeNull()
+  })
+  it('round-trips an intentionally empty selection', () => {
+    const qs = serialize({ household: defaults, selected: [], assumptions: DEFAULT_ASSUMPTIONS }, defaults)
+    expect(parse('?' + qs, defaults, ids)!.selected).toEqual([])
+  })
+  it('clamps counts, dedupes and caps platforms, and rejects malformed ages', () => {
+    const back = parse('?k=1000000000&od=99&a=999&p=aoc,aoc,party-dem&ka=5,abc', defaults, ids)!
+    expect(back.household.childrenUnder17).toBe(12)
+    expect(back.household.otherDependents).toBe(12)
+    expect(back.household.age).toBe(120)
+    expect(back.selected).toEqual(['aoc', 'party-dem'])
+    expect(back.household.childAges).toEqual(defaults.childAges)
+  })
+})

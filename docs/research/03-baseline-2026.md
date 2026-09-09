@@ -26,7 +26,7 @@ Compiled 2026-09-08 by an Opus research subagent. Values transcribed into `src/d
 - Enhanced schedule (for restoration scenarios): 0% to 150% FPL; 0→2% (150–200); 2→4%; 4→6%; 6→8.5% (300–400); 8.5% above 400%, no cliff.
 - **2026 subsidies use the 2025 FPL table** (45 CFR 155.305(f)); Medicaid uses the 2026 table.
 - 2025 FPL (48 states): $15,650 + $5,500/person; 2026: $15,960 + $5,680/person (91 FR 1797). Alaska and Hawaii tables in the data file.
-- Benchmark premium, age 40, national average: $625/mo in 2026 (+26% vs $497 in 2025). KFF. State range $401 (NH) to $1,299 (VT).
+- Benchmark premium, age 40, national average: $625/mo in 2026 (+26% vs $497 in 2025). KFF. State range roughly $414 (MD) to $1,299 (VT).
 - CMS default age curve: age-21 = 1.0, age 40 = 1.278, age 64+ = 3.0; children 0–14 = 0.765; max three children under 21 counted.
 
 ## Employer coverage (KFF EHBS 2025; 2026 survey publishes Oct 2026)
@@ -48,7 +48,7 @@ Compiled 2026-09-08 by an Opus research subagent. Values transcribed into `src/d
 
 ## Assumptions made in code (not sourced to a single figure)
 - Marketplace out-of-pocket $1,500; employer-plan out-of-pocket $1,200; uninsured expected cost $2,500; Medicare out-of-pocket excluding Part B $4,000.
-- Tariff cost: 1.5% of gross income capped at $5,000 (Yale Budget Lab reports ~$2,000–$2,500 per average household, regressive).
+- Tariff cost: 1.0% of gross income capped at $3,000, targeting ~$840/household after the Feb 2026 IEEPA ruling (Tax Foundation). Flat approximation; actual incidence is regressive.
 
 ## Uncertainty register
 1. Enhanced-subsidy status after 2026-08-03 unverified.

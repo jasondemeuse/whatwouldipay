@@ -4,16 +4,25 @@ import { usd, pct } from '../lib/format'
 import { Delta } from './Delta'
 import { Avatar } from './Avatar'
 import { Money } from './Money'
+import { Segmented } from './Segmented'
+import { fmtBillions, resolvedSpending, scorerLabel } from '../engine/spending'
 
 type SortMode = 'impact' | 'selection' | 'name'
 
 interface Props {
   baseline: HouseholdResult
-  results: Array<{ platform: Platform; result: HouseholdResult }>
+  results: Array<{ platform: Platform; result: HouseholdResult; sameAs?: string }>
+  all: Platform[]
   onShowPositions: (platformId: string) => void
   onExplain: (platformId: string) => void
   explaining: string | null
   whyPanel: React.ReactNode
+  /** Guess-first state lives in App so every surface can hide numbers together. */
+  guessMode: boolean
+  revealed: Record<string, boolean>
+  onGuessModeChange: (on: boolean) => void
+  onReveal: (id: string) => void
+  onRevealAll: () => void
 }
 
 const COVERAGE_LABEL: Record<string, string> = {
@@ -26,18 +35,26 @@ const COVERAGE_LABEL: Record<string, string> = {
   coverageGap: 'Coverage gap (uninsured)',
 }
 
-export function ResultsView({ baseline, results, onShowPositions, onExplain, explaining, whyPanel }: Props) {
+export function ResultsView({
+  baseline,
+  results,
+  all,
+  onShowPositions,
+  onExplain,
+  explaining,
+  whyPanel,
+  guessMode,
+  revealed,
+  onGuessModeChange,
+  onReveal,
+  onRevealAll,
+}: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [sort, setSort] = useState<SortMode>('impact')
-  const [guessMode, setGuessMode] = useState(false)
   const [guesses, setGuesses] = useState<Record<string, number>>({})
-  const [revealed, setRevealed] = useState<Record<string, boolean>>({})
   const hidden = (id: string) => guessMode && !revealed[id]
-  const revealAll = () => setRevealed(Object.fromEntries(results.map((r) => [r.platform.id, true])))
-  const resetGuesses = () => {
-    setRevealed({})
-    setGuesses({})
-  }
+  const anyHidden = results.some((r) => hidden(r.platform.id))
+  const deficitOf = (platform: Platform) => resolvedSpending(platform, all).find((s) => s.category === 'deficit')
   const sorted = [...results].sort((a, b) => {
     if (sort === 'impact') return b.result.netIncome - a.result.netIncome
     if (sort === 'name') return a.platform.name.localeCompare(b.platform.name)
@@ -56,42 +73,34 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
               className="h-3.5 w-3.5 accent-[var(--color-accent)]"
               checked={guessMode}
               onChange={(e) => {
-                setGuessMode(e.target.checked)
-                resetGuesses()
+                onGuessModeChange(e.target.checked)
+                setGuesses({})
               }}
             />
             <span>
               Guess first <span className="text-ink-4">· predict each effect before you see it</span>
             </span>
           </label>
-          {guessMode && Object.keys(revealed).length < results.length && (
-            <button type="button" onClick={revealAll} className="underline hover:text-ink">
+          {guessMode && anyHidden && (
+            <button type="button" onClick={onRevealAll} className="underline hover:text-ink">
               Reveal all
             </button>
           )}
-          {results.length > 1 && (<>
-          <span id="sort-label" className="ml-auto">Order</span>
-          <div role="radiogroup" aria-labelledby="sort-label" className="inline-flex rounded-md border border-rule bg-card p-0.5">
-            {(
-              [
-                ['impact', 'By what you keep'],
-                ['selection', 'As selected'],
-                ['name', 'By name'],
-              ] as Array<[SortMode, string]>
-            ).map(([mode, label]) => (
-              <button
-                key={mode}
-                type="button"
-                role="radio"
-                aria-checked={sort === mode}
-                onClick={() => setSort(mode)}
-                className={`rounded px-2 py-0.5 font-medium transition-colors ${sort === mode ? 'bg-ink text-card' : 'text-ink-2 hover:bg-paper-2'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          </>)}
+          {results.length > 1 && (
+            <span className="ml-auto inline-flex items-center gap-2">
+              <span>Order</span>
+              <Segmented<SortMode>
+                label="Order results"
+                value={sort}
+                options={[
+                  { v: 'impact', label: 'By what you keep' },
+                  { v: 'selection', label: 'As selected' },
+                  { v: 'name', label: 'By name' },
+                ]}
+                onChange={setSort}
+              />
+            </span>
+          )}
         </div>
       )}
       {/* Headline cards */}
@@ -99,6 +108,8 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
         {rows.map(({ platform, result }) => {
           const delta = result.netIncome - baseline.netIncome
           const isBase = platform === null
+          const sameAs = platform ? results.find((r) => r.platform.id === platform.id)?.sameAs : undefined
+          const deficit = platform ? deficitOf(platform) : undefined
           return (
             <div
               key={result.platformId}
@@ -121,12 +132,17 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
                 <GuessControl
                   value={guesses[platform.id] ?? 0}
                   onChange={(v) => setGuesses((g) => ({ ...g, [platform.id]: v }))}
-                  onReveal={() => setRevealed((r) => ({ ...r, [platform.id]: true }))}
+                  onReveal={() => onReveal(platform.id)}
                 />
               ) : (
                 <div className="mt-3">
                   <div className="text-xs uppercase tracking-wide text-ink-3">Money left after taxes & healthcare</div>
-                  <Money value={result.netIncome} className="block text-2xl font-semibold tracking-tight text-ink" />
+                  <Money value={result.netIncome} className={`block text-2xl font-semibold tracking-tight ${result.unfunded ? 'text-ink-3 line-through decoration-ink-4/60' : 'text-ink'}`} />
+                  {result.unfunded && (
+                    <div className="mt-1 inline-block rounded bg-caution-2 px-1.5 py-0.5 text-xs text-ink-2">
+                      Unfunded: removes taxes without a modeled replacement, so this gain is overstated
+                    </div>
+                  )}
                   {!isBase && (
                     <div className="mt-1 text-sm font-semibold text-ink">
                       <Delta v={delta} animate /> <span className="font-normal text-ink-2">vs. current law</span>
@@ -157,6 +173,21 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
                       }}
                     />
                   </div>
+                </div>
+              )}
+              {!isBase && sameAs && !hidden(platform!.id) && (
+                <div className="mt-2 text-xs text-ink-3">
+                  {sameAs === 'baseline' ? 'Identical to current law: no modeled tax or health change.' : `Same modeled parameters as ${sameAs}; the number is identical.`}
+                </div>
+              )}
+              {!isBase && deficit && deficit.direction !== 'none' && !hidden(platform!.id) && (
+                <div className="mt-1 text-xs text-ink-3" title={deficit.summary}>
+                  Deficit effect:{' '}
+                  <span className="money text-ink-2">
+                    {deficit.cost10yr !== undefined ? `${fmtBillions(deficit.cost10yr)}${deficit.window ? ` over ${deficit.window}` : ''}` : deficit.direction === 'mixed' ? 'unscored' : deficit.direction}
+                  </span>
+                  {scorerLabel(deficit) && <span> ({scorerLabel(deficit)})</span>}
+                  {deficit.inherited && <span> · {deficit.source.shortName} default</span>}
                 </div>
               )}
               <div className="mt-3 flex items-center justify-between gap-2 text-xs text-ink-3">
@@ -203,14 +234,18 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
 
       {whyPanel}
 
+      {anyHidden && (
+        <p className="text-sm text-ink-3">The comparison table and line items are hidden until you reveal your guesses.</p>
+      )}
       {/* Comparison table */}
+      {!anyHidden && (
       <div className="card overflow-x-auto rounded-card border border-rule bg-card">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-paper-2 text-left text-xs uppercase tracking-wide text-ink-3">
             <tr>
-              <th className="px-4 py-2 font-semibold">Line</th>
+              <th scope="col" className="px-4 py-2 font-semibold">Line</th>
               {rows.map(({ platform, result }) => (
-                <th key={result.platformId} className="px-4 py-2 text-right font-semibold">
+                <th key={result.platformId} scope="col" className="px-4 py-2 text-right font-semibold">
                   {platform ? platform.shortName : 'Current law'}
                 </th>
               ))}
@@ -243,7 +278,9 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
         </table>
       </div>
 
+      )}
       {/* Per-platform breakdown */}
+      {!anyHidden && (
       <div className="space-y-2">
         <div className="text-xs font-semibold uppercase tracking-wide text-ink-3">Line-item detail</div>
         {rows.map(({ platform, result }) => {
@@ -253,6 +290,7 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
             <div key={id} className="rounded-lg border border-rule bg-card">
               <button
                 type="button"
+                aria-expanded={open}
                 onClick={() => setExpanded(open ? null : id)}
                 className="flex w-full items-center justify-between px-4 py-2 text-left text-sm font-medium text-ink hover:bg-paper-2"
               >
@@ -276,6 +314,7 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
           )
         })}
       </div>
+      )}
     </div>
   )
 }

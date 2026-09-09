@@ -1,5 +1,5 @@
 import type { Platform } from '../../engine/types'
-import { SRC, TARIFF, cite, ctcHawley, note, pos, restoreEnhancedAca, tariffs } from './helpers'
+import { SRC, TARIFF, cite, ctcHawley, hold, note, pos, restoreEnhancedAca, tariffs } from './helpers'
 
 export const VANCE: Platform = {
   id: 'vance',
@@ -7,41 +7,32 @@ export const VANCE: Platform = {
   shortName: 'Vance',
   kind: 'politician',
   party: 'R',
-  role: 'Vice President · 2028 GOP frontrunner',
-  inheritsFrom: 'party-maga',
+  role: 'Vice President',
+  inheritsFrom: 'party-gop',
   description:
-    'Owns the OBBBA record (cast the tie-breaking vote). Floated a $5,000 child credit in 2024 but now touts the enacted $2,200. Defends broad tariffs, opposed the enhanced ACA subsidies, and says he has no intention of repealing the ACA itself.',
+    'Owns the OBBBA record (cast the tie-breaking vote). Floated a $5,000 child credit as the 2024 nominee but now touts the enacted $2,200, which is what this model uses. Defends broad tariffs, opposed the enhanced ACA subsidies, and says he has no intention of repealing the ACA itself.',
   positions: [
     note('incomeRates', 'Keep the permanent OBBBA rates; "cutting the top marginal rate is not a high priority for me."', 'medium', [
       cite('Fox Business — Where Vance stands on taxes', 'https://www.foxbusiness.com/politics/where-does-jd-vance-stand-taxes-everything-you-need-know', '2024-07-16'),
     ]),
-    pos('ctc', 'Floated $5,000 per child as VP nominee (Aug 2024); as VP touts the enacted $2,200. Modeled at $5,000 with current refundability rules — the promise, not the enacted law.', 'medium', [
+    hold('ctc', 'Floated $5,000 per child as the 2024 nominee; as Vice President he touts the enacted $2,200 and has not renewed the $5,000 proposal, so current law is modeled.', 'medium', [
       cite('CBS News — Vance $5,000 child tax credit', 'https://www.cbsnews.com/news/jd-vance-child-tax-credit-5000-what-to-know/', '2024-08-12'),
       cite('ATR — Vance touts OBBBA tax cuts', 'https://atr.org/vice-president-vance-touts-big-beautiful-tax-cuts-you-earned-it-you-ought-to-keep-it/', '2026-01-22'),
-    ], (p) => {
-      p.ctc.amountPerChild = 5000
-    }),
+    ]),
     note('salt', 'Personally favored limiting or eliminating SALT (2024); enacted the $40,000 cap as VP.', 'medium', [
       cite('Fox Business — Where Vance stands on taxes', 'https://www.foxbusiness.com/politics/where-does-jd-vance-stand-taxes-everything-you-need-know', '2024-07-16'),
     ]),
     note('tipsOvertime', 'Promotes the tips and overtime deductions as promises kept; no statement on extending them past 2028.', 'medium', [SRC.gopPlatform]),
-    pos('tariffs', 'Expand/keep: sustained public defense of broad tariffs into 2026, including in tariff-hit Michigan.', 'high', [
-      cite('Bridge Michigan — Vance defends tariffs', 'https://bridgemi.com/michigan-government/takeaways-fact-checks-vance-defends-tariffs-urges-patience-michigan/', '2026'),
-    ], (p) => {
-      p.tariffs.multiplier = TARIFF.expand
-      p.tariffs.rebatePerPerson = 0
-    }),
-    pos('aca', '"No intention of repealing" the ACA, but argued the enhanced credits fuel insurer "waste and fraud"; the administration let them lapse.', 'high', [
+    pos('tariffs', 'Expand/keep: sustained public defense of broad tariffs, including in tariff-hit Michigan (March 2025).', 'high', [
+      cite('Bridge Michigan — Vance defends tariffs, urges patience', 'https://bridgemi.com/michigan-government/takeaways-fact-checks-vance-defends-tariffs-urges-patience-michigan/', '2025-03-14'),
+    ], tariffs(TARIFF.expand)),
+    hold('aca', '"No intention of repealing" the ACA, but argued the enhanced credits fuel insurer "waste and fraud"; the administration let them lapse. Current law kept.', 'high', [
       cite('CNBC — Vance on ACA subsidies during the shutdown', 'https://www.cnbc.com/2025/10/12/government-shutdown-vance-aca-democrats.html', '2025-10-12'),
-    ], (p) => {
-      // Override the MAGA-lane restoration: Vance opposed the enhanced credits.
-      p.aca.cliffAt400 = true
-    }),
+    ]),
     note('medicaid', 'Keep the OBBBA cuts and work requirements — cast the 51–50 tie-breaking vote and has toured defending the law.', 'high', [SRC.obbbaKff]),
     note('capitalGains', 'Stop Subsidizing Giant Mergers Act (with Whitehouse): end tax deferral on stock-for-stock mergers above $500M revenue. No wealth tax.', 'high', [
       cite('Whitehouse/Vance merger bill', 'https://www.whitehouse.senate.gov/news/release/whitehouse-vance-introduce-bipartisan-legislation-to-eliminate-tax-breaks-for-corporate-consolidation/', '2024-03-21'),
     ]),
-    note('medicare', 'Reportedly supports keeping IRA drug negotiation (single secondary source — unverified).', 'low', []),
   ],
   notes: ['Sponsored a bill raising the large-university endowment tax from 1.4% to 35%.'],
 }
@@ -52,39 +43,26 @@ export const RUBIO: Platform = {
   shortName: 'Rubio',
   kind: 'politician',
   party: 'R',
-  role: 'Secretary of State · 2028 GOP #2',
+  role: 'Secretary of State',
   inheritsFrom: 'party-gop',
   description:
-    'Almost every numeric position dates to his 2014–2017 Senate record (the Rubio–Lee plan and the TCJA child credit fight). No 2025–26 domestic tax or healthcare statements found in his current role. Treat as "historical Rubio."',
+    'No 2025–26 domestic tax or healthcare statements found in his current role, so the model uses the Republican baseline. His 2014–2017 Senate record (the Rubio–Lee plan, the TCJA child credit fight) is recorded below as historical context only, not applied.',
   positions: [
-    pos('incomeRates', 'Rubio–Lee plan (2016): three brackets of 15% / 25% / 35% (15% to ~$75k single / $150k joint; 25% to $150k / $300k; 35% above). Historical.', 'medium', [
+    note('incomeRates', 'Historical: the 2016 Rubio–Lee plan collapsed brackets to 15% / 25% / 35% and replaced the standard deduction with a $2,000 refundable personal credit. Not modeled; the two changes only make sense together.', 'medium', [
       cite('Tax Foundation — Rubio tax plan', 'https://taxfoundation.org/blog/marco-rubio-tax-plan/', '2016-03-16'),
-    ], (p) => {
-      p.incomeTax.brackets.single = [{ rate: 0.15, over: 0 }, { rate: 0.25, over: 75000 }, { rate: 0.35, over: 150000 }]
-      p.incomeTax.brackets.mfs = [{ rate: 0.15, over: 0 }, { rate: 0.25, over: 75000 }, { rate: 0.35, over: 150000 }]
-      p.incomeTax.brackets.hoh = [{ rate: 0.15, over: 0 }, { rate: 0.25, over: 75000 }, { rate: 0.35, over: 150000 }]
-      p.incomeTax.brackets.mfj = [{ rate: 0.15, over: 0 }, { rate: 0.25, over: 150000 }, { rate: 0.35, over: 300000 }]
-    }),
-    pos('ctc', 'Forced the TCJA doubling to $2,000 with refundability against payroll tax; his 2015 plan called for $2,500 per child. Modeled at $2,500.', 'high', [
+    ]),
+    note('ctc', 'Historical: forced the TCJA doubling to $2,000 with refundability against payroll tax (2017); his 2015 plan called for $2,500 per child. Current law ($2,200) modeled.', 'medium', [
       cite('CNBC — Rubio/Lee child tax credit fight', 'https://www.cnbc.com/2017/11/15/senate-gop-raises-child-tax-credit-to-win-over-marco-rubio-mike-lee.html', '2017-11-15'),
-    ], (p) => {
-      p.ctc.amountPerChild = 2500
-    }),
+    ]),
     note('eitc', '2014: abolish the EITC and replace it with a direct federal wage subsidy (not modeled).', 'medium', [
       cite('Wikipedia — Political positions of Marco Rubio', 'https://en.wikipedia.org/wiki/Political_positions_of_Marco_Rubio'),
     ]),
-    pos('capitalGains', 'Rubio–Lee eliminated individual taxation of capital gains and dividends entirely. Historical.', 'medium', [
+    note('capitalGains', 'Historical: Rubio–Lee (2016) eliminated individual taxation of capital gains and dividends. Not modeled.', 'medium', [
       cite('Tax Foundation — Rubio tax plan', 'https://taxfoundation.org/blog/marco-rubio-tax-plan/', '2016-03-16'),
-    ], (p) => {
-      for (const fs of ['single', 'mfj', 'mfs', 'hoh'] as const) p.capitalGains.brackets[fs] = [{ rate: 0, over: 0 }]
-      p.capitalGains.niitRate = 0
-    }),
+    ]),
     pos('tariffs', 'Expand: moved from free trader to tariff advocate; as Secretary of State defends tariffs as trade-deal leverage.', 'high', [
       cite('Reason — Rubio on tariffs', 'https://reason.com/2024/05/10/marco-rubio-used-to-know-how-tariffs-work-what-happened/', '2024-05-10'),
     ], tariffs(TARIFF.expand)),
-    note('aca', 'Authored the risk-corridor restriction (2014–16); long-time repeal-and-replace supporter. No statement on the enhanced-credit expiration.', 'medium', [
-      cite('PolitiFact — Rubio and the ACA risk corridors', 'https://www.politifact.com/factchecks/2016/feb/25/marco-rubio/rubio-we-wiped-out-obamacare-bailout-fund-insuranc/', '2016-02-25'),
-    ]),
     note('medicare', '2014: convert Medicare to premium support, exempting everyone then 55+. Historical.', 'medium', [
       cite('CRFB — Rubio retirement reforms', 'https://www.crfb.org/blogs/rubio-proposes-retirement-program-reforms', '2014-05-14'),
     ]),
@@ -92,7 +70,7 @@ export const RUBIO: Platform = {
       cite('CRFB — Rubio retirement reforms', 'https://www.crfb.org/blogs/rubio-proposes-retirement-program-reforms', '2014-05-14'),
     ]),
   ],
-  notes: ['Rubio–Lee: corporate 25%, full estate tax repeal, standard deduction replaced by a $2,000 refundable personal credit (not modeled).'],
+  notes: ['Rubio–Lee (2016): corporate 25%, full estate tax repeal. Long-time ACA repeal-and-replace supporter (2013–2017).'],
 }
 
 export const DESANTIS: Platform = {
@@ -104,12 +82,11 @@ export const DESANTIS: Platform = {
   role: 'Governor of Florida (term ends Jan 2027)',
   inheritsFrom: 'party-gop',
   description:
-    'No documented federal tax position; Florida has no income tax. His record is state fiscal policy and a decade of refusing Medicaid expansion. Everything here falls back to the GOP baseline.',
+    'No documented federal tax-rate or credit position; Florida has no income tax. His federal fiscal stance is deficit-focused (he pitched a balanced-budget amendment in June 2026). His healthcare record is a decade of refusing Medicaid expansion. Tax parameters fall back to the GOP baseline.',
   positions: [
-    note('medicaid', 'Florida has refused ACA Medicaid expansion throughout his tenure (~700k–1.1M in the coverage gap); 2026 state work-requirement bills died.', 'medium', [
+    note('medicaid', 'Florida has refused ACA Medicaid expansion throughout his tenure; 2026 state bills to add work requirements for existing enrollees died without passage.', 'medium', [
       cite('KFF Health News — Florida Medicaid and OBBBA', 'https://kffhealthnews.org/medicaid/florida-medicaid-work-requirements-expansion-one-big-beautiful-bill-act/'),
     ]),
-    note('aca', 'Voted six times to repeal the ACA as a House member; no 2025–26 statement on the enhanced credits.', 'low', []),
   ],
   notes: [
     'Pushing a Florida property-tax elimination amendment ($1,000 homestead rebates; exemption to $150k in 2027 and $250k in 2028; needs 60% in Nov 2026).',
@@ -146,7 +123,6 @@ export const CRUZ: Platform = {
     note('payroll', 'Frames Trump Accounts as a step toward diverting "a portion of your payroll taxes" into personal accounts. Aspirational.', 'medium', [
       cite('Axios — Cruz on Trump Accounts and Social Security', 'https://www.axios.com/2026/05/08/cruz-trump-accounts-social-security', '2026-05-08'),
     ]),
-    note('aca', 'Led the 2017 repeal push; no 2025–26 statement on the enhanced credits found.', 'low', []),
   ],
   notes: ['Corporate 15%; full estate tax repeal (Death Tax Repeal Act cosponsor).'],
 }
@@ -166,16 +142,11 @@ export const PAUL: Platform = {
       cite('CRFB — Rand Paul flat tax', 'https://www.crfb.org/blogs/senator-rand-paul-releases-flat-tax-plan', '2015-06-18'),
       cite('Paul — Why I said no to OBBBA', 'https://www.paul.senate.gov/op_eds/why-i-said-no-to-the-one-big-beautiful-bill-act/', '2025-07'),
     ], (p) => {
-      for (const fs of ['single', 'mfj', 'mfs', 'hoh'] as const) {
-        p.incomeTax.brackets[fs] = [{ rate: 0.145, over: 0 }]
-        p.capitalGains.brackets[fs] = [{ rate: 0.145, over: 0 }]
-      }
-      p.capitalGains.niitRate = 0
-      p.deductions.tips.enabled = false
-      p.deductions.overtime.enabled = false
+      for (const fs of ['single', 'mfj', 'mfs', 'hoh'] as const) p.incomeTax.brackets[fs] = [{ rate: 0.145, over: 0 }]
       p.incomeTax.seniorDeduction.amount = 0
+      p.unfunded = true
       p.caveats.push(
-        'Paul’s plan replaces payroll and corporate taxes with a 14.5% business transfer tax, which economists expect to raise prices or lower wages; that cost is not modeled here.',
+        'Paul’s plan replaces payroll and corporate taxes with a 14.5% business transfer tax, which economists expect to raise prices or lower wages; that cost is not modeled here, so the headline gain is overstated.',
       )
     }),
     pos('standardDeduction', '$15,000 deduction per filer plus $5,000 per person (a family of four owes nothing on the first $50,000).', 'high', [
@@ -188,6 +159,18 @@ export const PAUL: Platform = {
     note('ctc', 'Flat-tax plan retains the child tax credit at current parameters.', 'medium', [
       cite('CRFB — Rand Paul flat tax', 'https://www.crfb.org/blogs/senator-rand-paul-releases-flat-tax-plan', '2015-06-18'),
     ]),
+    pos('tipsOvertime', 'The flat tax has no special deductions, so the tips and overtime deductions would not exist.', 'medium', [
+      cite('CRFB — Rand Paul flat tax', 'https://www.crfb.org/blogs/senator-rand-paul-releases-flat-tax-plan', '2015-06-18'),
+    ], (p) => {
+      p.deductions.tips.enabled = false
+      p.deductions.overtime.enabled = false
+    }),
+    pos('capitalGains', 'Capital gains, dividends and interest taxed at the same 14.5% flat rate; the 3.8% net investment income tax is repealed.', 'medium', [
+      cite('CRFB — Rand Paul flat tax', 'https://www.crfb.org/blogs/senator-rand-paul-releases-flat-tax-plan', '2015-06-18'),
+    ], (p) => {
+      for (const fs of ['single', 'mfj', 'mfs', 'hoh'] as const) p.capitalGains.brackets[fs] = [{ rate: 0.145, over: 0 }]
+      p.capitalGains.niitRate = 0
+    }),
     pos('payroll', 'Eliminate payroll taxes entirely (funded by the business transfer tax); has floated gradually raising the retirement age.', 'medium', [
       cite('CRFB — Rand Paul flat tax', 'https://www.crfb.org/blogs/senator-rand-paul-releases-flat-tax-plan', '2015-06-18'),
     ], (p) => {
@@ -228,17 +211,11 @@ export const HAWLEY: Platform = {
     'The most policy-distinctive Republican: $5,000 child credit with no earnings floor, tariff-funded rebate checks, voted to extend the enhanced ACA credits, "Don’t Cut Medicaid," and international reference pricing for drugs. Author of the No Tax on Overtime Act.',
   positions: [
     pos('ctc', '$5,000 per child, no minimum-earnings threshold, refundable against payroll tax, paid monthly, extended to the pregnancy year.', 'high', [SRC.hawleyCtc], ctcHawley),
-    note('tipsOvertime', 'Introduced S.1046, No Tax on Overtime Act of 2025 (enacted as a deduction in OBBBA).', 'high', [
-      cite('Hawley — No Tax on Overtime Act', 'https://www.hawley.senate.gov/', '2025-03-12'),
-    ]),
-    pos('tariffs', 'Expand tariffs on China and rebate revenue: at least $600 per adult and per child (~$2,400 for a family of four); $20B of tariff revenue to farmers.', 'high', [SRC.hawleyRebate], (p) => {
-      p.tariffs.multiplier = TARIFF.keep
-      p.tariffs.rebatePerPerson = 600
-    }),
+    note('tipsOvertime', 'Introduced S.1046, No Tax on Overtime Act of 2025 (enacted as a deduction in OBBBA).', 'high', [SRC.hawleyOvertime]),
+    pos('tariffs', 'Keep and expand tariffs on China. His American Worker Rebate Act (at least $600 per person from tariff revenue) relied on the IEEPA tariffs struck down in Feb 2026 and was not enacted, so no rebate is modeled.', 'high', [SRC.hawleyRebate, SRC.tfTariffs], tariffs(TARIFF.keep)),
     pos('aca', 'Voted YES on the Democrats’ 3-year enhanced-subsidy extension (2025-12-11); proposed a $25,000 medical-expense deduction with no AGI floor.', 'high', [SRC.hawleyAcaVote], restoreEnhancedAca),
     note('medicaid', '"Don’t Cut Medicaid" (NYT, 2025-05-12); Protect Medicaid and Rural Hospitals Act reverses provider-tax cuts and doubles the rural fund to $100B. Still voted for OBBBA; work requirement stays.', 'high', [SRC.hawleyMedicaid]),
     note('medicare', 'Fair Prescription Drug Prices for Americans Act (with Welch): cap U.S. list prices at the six-country average; ETHIC Act on patent thickets.', 'high', [SRC.hawleyDrugs]),
-    note('payroll', 'Prefers offsetting payroll liability via the CTC rather than changing the wage base; Keep Our Promises Act shields Social Security and Medicare from debt-ceiling talks.', 'medium', []),
   ],
   notes: ['Cap Insulin Prices Act (2023); ban on PBM rebates; defense-contractor buyback limits with Warren (2026).'],
 }
@@ -266,8 +243,8 @@ export const HALEY: Platform = {
     note('payroll', 'Raise the retirement age to 70–71 for Americans now in their 20s; limit benefit growth for wealthy retirees; chained-CPI COLA. No wage-base change.', 'high', [
       cite('PolitiFact — Haley Social Security plan', 'https://www.politifact.com/factchecks/2024/jan/18/donald-trump/trump-ad-says-nikki-haleys-plan-would-cut-social-s/', '2024-01-18'),
     ]),
-    pos('tariffs', 'Repeal broad tariffs; ran ads against a universal tariff (~$2,600/household/yr claimed); criticized 2025 tariffs on India.', 'high', [
-      cite('FactCheck.org — Trump/Haley trade attacks', 'https://www.factcheck.org/2024/02/trump-haley-trade-false-and-misleading-attacks/', '2024-02-01'),
+    pos('tariffs', 'Opposed a universal tariff during the 2024 primary and criticized the 2025 tariffs on India; consistently pro-trade.', 'medium', [
+      cite('KFF Health News — Haley record (campaign profile)', 'https://kffhealthnews.org/elections/nikki-haley-health-policy-governor-president-agenda/'),
     ], tariffs(TARIFF.repeal)),
     note('medicaid', 'Declined ACA Medicaid expansion as South Carolina governor (SC remains non-expansion).', 'high', [
       cite('KFF Health News — Haley health policy record', 'https://kffhealthnews.org/elections/nikki-haley-health-policy-governor-president-agenda/'),

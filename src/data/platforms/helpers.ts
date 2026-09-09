@@ -32,13 +32,22 @@ export function setTopRate(p: PolicyParams, rate: number, threshold: ByFilingSta
   }
 }
 
+/** Replace everything above the lowest threshold with a new marginal schedule (same thresholds for all statuses). */
+export function setBracketsAbove(p: PolicyParams, tiers: Array<{ over: number; rate: number }>) {
+  const first = tiers[0].over
+  for (const fs of ['single', 'mfj', 'mfs', 'hoh'] as const) {
+    const kept = p.incomeTax.brackets[fs].filter((b) => b.over < first)
+    p.incomeTax.brackets[fs] = [...kept, ...tiers.map((t) => ({ rate: t.rate, over: t.over }))]
+  }
+}
+
 /** Add a surtax on taxable income above a threshold (same threshold for all statuses). */
 export function addSurtax(p: PolicyParams, rate: number, over: number) {
   p.incomeTax.surtaxes.push({ rate, over: { single: over, mfj: over, mfs: over / 2, hoh: over } })
 }
 
 export function restoreEnhancedAca(p: PolicyParams) {
-  p.aca.applicablePct = [...ENHANCED_ACA_SCHEDULE]
+  p.aca.applicablePct = ENHANCED_ACA_SCHEDULE.map(([a, b]) => [a, b])
   p.aca.cliffAt400 = false
 }
 
@@ -56,29 +65,39 @@ export function closeCoverageGap(p: PolicyParams) {
   p.medicaid.nationalExpansion = true
 }
 
+/** Reverse OBBBA's Medicaid cuts and close the coverage gap (the Democratic caucus bill). */
+export function reverseHealthCuts(p: PolicyParams) {
+  reverseObbbaMedicaid(p)
+  closeCoverageGap(p)
+}
+
+/**
+ * Social Security Expansion Act (S.770, 119th): 12.4% payroll tax on earnings above $250,000, and §8 raises the
+ * net investment income tax from 3.8% to 16.2% ("in lieu of Social Security and Medicare taxes" on unearned income).
+ */
+export function socialSecurityExpansionAct(p: PolicyParams) {
+  p.payroll.ssDonutHoleStart = 250000
+  p.capitalGains.niitRate = 0.162
+}
+/** Payroll tax above a threshold only (e.g. Social Security 2100 Act at $400,000). */
 export function scrapTheCap(p: PolicyParams, above: number) {
   p.payroll.ssDonutHoleStart = above
 }
 
-/** ARPA-style CTC: $3,000 base ($3,600 under 6 not modeled — no child ages), fully refundable, monthly. */
-export function ctcArpa(p: PolicyParams) {
-  p.ctc.amountPerChild = 3000
-  p.ctc.fullyRefundable = true
-  p.ctc.youngChildBonus = { amount: 600, underAge: 6 }
+/** A fully refundable child credit of `amount` per child, plus an optional bonus for children under `underAge`. */
+function ctcFlat(amount: number, bonus?: { amount: number; underAge: number }) {
+  return (p: PolicyParams) => {
+    p.ctc.amountPerChild = amount
+    p.ctc.fullyRefundable = true
+    p.ctc.youngChildBonus = bonus
+  }
 }
-
-/** American Family Act (Bennet/Booker, 2025-04-09): $3,600 ages 6–17, $4,320 ages 1–5, $6,360 newborns; fully refundable, monthly. */
-export function ctcAmericanFamilyAct(p: PolicyParams) {
-  p.ctc.amountPerChild = 3600
-  p.ctc.fullyRefundable = true
-  p.ctc.youngChildBonus = { amount: 720, underAge: 6 }
-}
-
+/** ARPA-style CTC: $3,000 per child, $3,600 under 6, fully refundable, paid monthly. */
+export const ctcArpa = ctcFlat(3000, { amount: 600, underAge: 6 })
+/** American Family Act (Bennet/Booker, 2025-04-09): $3,600 ages 6–17, $4,320 ages 1–5 (modeled as one under-6 tier), $6,360 newborns (not modeled separately). */
+export const ctcAmericanFamilyAct = ctcFlat(3600, { amount: 720, underAge: 6 })
 /** Hawley: $5,000 per child, refundable against payroll tax with no earnings floor (modeled as fully refundable). */
-export function ctcHawley(p: PolicyParams) {
-  p.ctc.amountPerChild = 5000
-  p.ctc.fullyRefundable = true
-}
+export const ctcHawley = ctcFlat(5000)
 
 /** ARPA childless-worker EITC expansion, per the FY2025 Greenbook (2024 dollars): max $1,749, 15.3% rates, ages 19+ with no 65 cap. */
 export function eitcChildlessExpansion(p: PolicyParams) {
@@ -91,7 +110,12 @@ export function medicareForAll(p: PolicyParams) {
   p.singlePayer.enabled = true
 }
 
-/** Tariff stance → multiplier on the current-law household cost (~$840/yr average). */
+/**
+ * Tariff stance → multiplier on the current-law household cost (~$840/yr, the surviving Section 232/301/201 tariffs
+ * after the Feb 2026 IEEPA ruling). These multipliers are the app's judgment, not sourced figures: "repeal" keeps
+ * 25% on the view that the pre-2025 Section 301 China tariffs would survive any plausible repeal; "expand" adds 25%.
+ * They are disclosed in the methodology and should be read as directional.
+ */
 export const TARIFF = {
   /** Repeal the 2025+ tariffs; only the pre-2025 Section 301 China tariffs remain. */
   repeal: 0.25,
@@ -112,17 +136,21 @@ export const SRC = {
   gopPlatform: cite('2024 Republican Party Platform', 'https://www.presidency.ucsb.edu/documents/2024-republican-party-platform', '2024-07-08'),
   demPlatform: cite('2024 Democratic Party Platform', 'https://democrats.org/where-we-stand/party-platform/', '2024-08-19'),
   greenbook: cite('Treasury FY2025 Greenbook (Biden-Harris revenue proposals)', 'https://home.treasury.gov/system/files/131/General-Explanations-FY2025.pdf', '2024-03-11'),
-  fy25budget: cite('FY2025 President’s Budget', 'https://www.whitehouse.gov/wp-content/uploads/2024/03/budget_fy2025.pdf', '2024-03-11'),
+  fy25budget: cite('FY2025 President’s Budget', 'https://bidenwhitehouse.archives.gov/wp-content/uploads/2024/03/budget_fy2025.pdf', '2024-03-11'),
   afa: cite('Bennet/Booker — American Family Act reintroduction', 'https://www.bennet.senate.gov/2025/04/09/bennet-booker-warnock-cortez-masto-durbin-wyden-senate-colleagues-reintroduce-the-american-family-act-to-expand-the-child-tax-credit/', '2025-04-09'),
   ssea: cite('Sanders — Social Security Expansion Act one-pager', 'https://www.sanders.senate.gov/wp-content/uploads/Social-Security-Expansion-Act-one-pager-Final.pdf'),
+  sseaText: cite('S.770 (119th) Social Security Expansion Act — bill text (§8: NIIT 3.8% → 16.2%)', 'https://www.govinfo.gov/content/pkg/BILLS-119s770is/html/BILLS-119s770is.htm', '2025-02'),
   m4aBill: cite('S.1506 Medicare for All Act (119th) — bill text', 'https://www.govinfo.gov/content/pkg/BILLS-119s1506is/html/BILLS-119s1506is.htm', '2025-04-29'),
   m4aHouse: cite('H.R.3069 Medicare for All Act — cosponsors', 'https://www.congress.gov/bill/119th-congress/house-bill/3069/cosponsors', '2025-04-29'),
   gallegoAca: cite('Gallego — Protecting Healthcare And Lowering Costs Act', 'https://www.gallego.senate.gov/news/press-releases/gallego-colleagues-introduce-legislation-to-reverse-devastating-health-care-cuts-in-republicans-big-beautiful-bill/', '2025-08-19'),
   lpPlatform: cite('Libertarian Party Platform', 'https://www.lp.org/platform/', '2026-05-25'),
   sandersM4aFinance: cite('Sanders — Options to Finance Medicare for All', 'https://www.sanders.senate.gov/wp-content/uploads/options-to-finance-medicare-for-all.pdf', '2019-04-10'),
-  hawleyCtc: cite('Hawley — child tax credit proposal', 'https://www.hawley.senate.gov/hawley-unveils-new-child-tax-credit-proposal-to-support-working-families', '2024-12-17'),
+  hawleyCtc: cite('Hawley — child tax credit proposal', 'https://www.hawley.senate.gov/hawley-unveils-new-child-tax-credit-proposal-to-support-working-families/', '2024-12-17'),
+  hawleyOvertime: cite('S.1046 (119th) — No Tax on Overtime Act of 2025', 'https://www.congress.gov/bill/119th-congress/senate-bill/1046', '2025-03-12'),
+  mdHb352: cite('Maryland HB 352 (2025), Budget Reconciliation and Financing Act — fiscal and policy note', 'https://mgaleg.maryland.gov/mgawebsite/Legislation/Details/hb0352?ys=2025RS', '2025-05-20'),
+  ossoffAcaReport: cite('Ossoff — report: after expiration of ACA tax credits, Georgians paying thousands more', 'https://www.ossoff.senate.gov/press-releases/new-report-after-expiration-of-aca-tax-credits-georgians-are-delaying-necessary-care-paying-thousands-more-for-insuranceclick-here-to-read-sen-ossoffs-new-report-on-loss-of-aca-tax/', '2026-07-06'),
   hawleyRebate: cite('Hawley — American Worker Rebate Act', 'https://www.hawley.senate.gov/hawley-introduces-legislation-to-send-rebate-checks-to-working-americans/', '2025-07-28'),
   hawleyMedicaid: cite('Hawley — "Don’t Cut Medicaid" op-ed and Protect Medicaid and Rural Hospitals Act', 'https://www.hawley.senate.gov/hawley-op-ed-dont-cut-medicaid/', '2025-05-12'),
-  hawleyAcaVote: cite('ATR — Hawley voted for the Democratic enhanced-subsidy extension', 'https://www.atr.org/senator-hawley-to-the-left-of-wapo-on-obamacare-subsidies/', '2025-12-11'),
+  hawleyAcaVote: cite('ATR — Hawley voted for the Democratic enhanced-subsidy extension', 'https://atr.org/senator-hawley-to-the-left-of-wapo-on-obamacare-subsidies/', '2025-12-11'),
   hawleyDrugs: cite('Hawley/Welch — Fair Prescription Drug Prices for Americans Act', 'https://www.hawley.senate.gov/in-bipartisan-push-hawley-welch-introduce-major-legislation-to-lower-prescription-drug-prices/', '2025-05-05'),
 }

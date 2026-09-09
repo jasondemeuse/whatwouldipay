@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "avatars": "node scripts/fetch-avatars.mjs",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -30,5 +33,14 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
+  },
+  "description": "Compare how politicians\u2019 published tax and healthcare platforms would change your household\u2019s take-home pay, with every number cited.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jasondemeuse/whatwouldipay"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

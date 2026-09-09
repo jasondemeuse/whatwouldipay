@@ -1,6 +1,6 @@
-import { useRef } from 'react'
 import type { Assumptions } from '../engine/types'
 import { DEFAULT_ASSUMPTIONS } from '../engine/assumptions'
+import { Segmented } from './Segmented'
 
 interface Props {
   value: Assumptions
@@ -35,7 +35,7 @@ export function AssumptionsPanel({ value, onChange, singlePayerSelected }: Props
       <div className="mt-4 space-y-4">
         <Row
           title="Under single payer, does your employer's premium share become wages?"
-          detail="Employers pay roughly $20,000 of a family premium today. Economists generally expect most of that to return as pay over time, but it would be taxable. Default: no."
+          detail="Employers pay roughly $20,000 of a family premium today. Economists generally expect most of that to return as pay over time, but it would be taxable. Default: no, which understates single payer's gain for most employer-covered families."
           relevant={singlePayerSelected}
         >
           <Segmented
@@ -50,7 +50,7 @@ export function AssumptionsPanel({ value, onChange, singlePayerSelected }: Props
         </Row>
         <Row
           title="Is the single-payer employer payroll premium (7.5%) passed to workers?"
-          detail="Sanders' financing options include a 7.5% employer payroll premium. If employers offset it with lower wages, workers bear it. Default: 0%."
+          detail="Sanders' financing options include a 7.5% employer payroll premium. If employers offset it with lower wages, workers bear it. Default: 0%, which understates single payer's cost. Economists would normally flip these two switches together."
           relevant={singlePayerSelected}
         >
           <Segmented
@@ -96,65 +96,6 @@ function Row({ title, detail, relevant, children }: { title: string; detail: str
         </div>
       </div>
       <div>{children}</div>
-    </div>
-  )
-}
-
-/** Radiogroup with roving tabindex and arrow-key navigation (WAI-ARIA radio group pattern). */
-function Segmented({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: string
-  options: Array<{ v: string; label: string }>
-  onChange: (v: string) => void
-}) {
-  const refs = useRef<Array<HTMLButtonElement | null>>([])
-  const idx = Math.max(0, options.findIndex((o) => o.v === value))
-  const move = (to: number) => {
-    const next = (to + options.length) % options.length
-    onChange(options[next].v)
-    refs.current[next]?.focus()
-  }
-  return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-md border border-rule bg-card p-0.5 text-xs">
-      {options.map((o, i) => {
-        const on = i === idx
-        return (
-          <button
-            key={o.v}
-            ref={(el) => {
-              refs.current[i] = el
-            }}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            tabIndex={on ? 0 : -1}
-            onClick={() => onChange(o.v)}
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                e.preventDefault()
-                move(idx + 1)
-              } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                e.preventDefault()
-                move(idx - 1)
-              } else if (e.key === 'Home') {
-                e.preventDefault()
-                move(0)
-              } else if (e.key === 'End') {
-                e.preventDefault()
-                move(options.length - 1)
-              }
-            }}
-            className={`rounded px-2.5 py-1 font-medium transition-colors ${on ? 'bg-ink text-card' : 'text-ink-2 hover:bg-paper-2'}`}
-          >
-            {o.label}
-          </button>
-        )
-      })}
     </div>
   )
 }

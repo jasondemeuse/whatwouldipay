@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>What Would I Pay?</title>
+    <meta property="og:title" content="What Would I Pay?" />
+    <meta property="og:description" content="Compare how politicians’ published tax and healthcare platforms would change your household’s take-home pay, with every number cited." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Stamp the theme before first paint to avoid a flash (mirrors src/lib/theme.ts).
+      try {
+        var t = localStorage.getItem('wwip:theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        else if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('system-dark');
+      } catch (e) {}
+    </script>
     <meta name="description" content="Compare how 2028 presidential hopefuls’ tax and healthcare platforms would change your household’s take-home pay, with sources." />
   </head>
   <body>

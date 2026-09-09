@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Attribution, AttributionStep } from '../engine/attribution'
 import type { Platform } from '../engine/types'
 import { usd } from '../lib/format'
-import { AREA_LABEL } from './PositionsPanel'
+import { AREA_LABEL } from '../lib/labels'
 import { Delta } from './Delta'
 
 interface Props {

@@ -31,6 +31,22 @@ const base: Household = {
  * Median household income: $83,730 (Census, Income in the United States: 2024, P60-286).
  * https://www.census.gov/library/publications/2025/demo/p60-286.html
  */
+/**
+ * Reference household used when serializing permalinks (fields equal to these are omitted). FROZEN: changing it
+ * changes what every previously shared link decodes to. It happens to equal the first persona as of 2026-09-08.
+ */
+export const URL_DEFAULT_HOUSEHOLD: Readonly<Household> = Object.freeze({
+  ...base,
+  filingStatus: 'mfj',
+  wages: 52000,
+  spouseWages: 31730,
+  age: 41,
+  spouseAge: 39,
+  childrenUnder17: 1,
+  childAges: [9],
+  state: 'OH',
+})
+
 export const PERSONAS: Persona[] = [
   {
     id: 'median',

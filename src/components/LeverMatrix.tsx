@@ -1,7 +1,7 @@
 import type { Attribution } from '../engine/attribution'
 import { deltasByArea } from '../engine/attribution'
 import type { Platform, PolicyArea } from '../engine/types'
-import { AREA_LABEL } from './PositionsPanel'
+import { AREA_LABEL } from '../lib/labels'
 import { Delta } from './Delta'
 
 interface Props {

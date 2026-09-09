@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { BASELINE_2026 } from '../data/baseline2026'
 import { PLATFORMS } from '../data/platforms'
 import { CHANGELOG } from '../data/changelog'
-import { AREA_LABEL } from '../components/PositionsPanel'
+import { AREA_LABEL } from '../lib/labels'
 import { SPENDING_CATEGORIES, fmtBillions, scorerLabel } from '../engine/spending'
 import { usd, pct } from '../lib/format'
 
@@ -92,7 +92,18 @@ export function MethodologyPage() {
           ['#changelog', 'Changelog'],
           ['#credits', 'Photo credits'],
         ].map(([href, label]) => (
-          <a key={href} href={`#/methodology${href}`} className="text-accent underline hover:text-ink">
+          <a
+            key={href}
+            href={`#/methodology${href}`}
+            onClick={(e) => {
+              e.preventDefault()
+              const el = document.getElementById(href.slice(1))
+              el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              el?.setAttribute('tabindex', '-1')
+              el?.focus({ preventScroll: true })
+            }}
+            className="text-accent underline hover:text-ink"
+          >
             {label}
           </a>
         ))}

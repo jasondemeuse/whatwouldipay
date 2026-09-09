@@ -135,13 +135,14 @@ export const BASELINE_2026: PolicyParams = {
   tariffs: {
     // [TF-TARIFF] After the Supreme Court struck the IEEPA tariffs (Learning Resources v. Trump, 2026-02-20), the
     // surviving Section 232/301/201 tariffs cost ~$840 per household in 2026 (was ~$1,000 in 2025); average
-    // effective rate 7.2%. Modeled as 1.0% of gross income capped at $3,000, so a median household lands near $840.
-    // Tariffs are regressive as a share of income [YALE-T]; the flat percentage is an approximation.
+    // effective rate 7.2%. Modeled as a FLAT 1.0% of gross income capped at $3,000, so a median household lands near
+    // $840. This is a proportional approximation; actual incidence is regressive (a larger share of low incomes).
     // https://taxfoundation.org/research/all/federal/trump-tariffs-trade-war/ (updated 2026-09-02)
     pctOfIncome: 0.01,
     maxAnnualCost: 3000,
     multiplier: 1,
     rebatePerPerson: 0,
+    passThrough: 1,
   },
 
   aca: {
@@ -210,6 +211,7 @@ export const BASELINE_2026: PolicyParams = {
     // premium with the first $2M of payroll exempt. Employer passthrough to wages assumed 0 in baseline display.
     householdPremiumRate: 0.04,
     householdPremiumExemption: 29000,
+    exemptionIsStandardDeduction: true,
     employerPayrollRate: 0.075,
     employerPassthrough: 0,
     employerPremiumToWages: false,
@@ -253,6 +255,7 @@ export const BASELINE_2026: PolicyParams = {
     },
   },
   caveats: [],
+  unfunded: false,
 }
 
 /** Enhanced (ARPA/IRA, 2021–2025) applicable-percentage schedule, for "restore the enhanced credits" platforms. IRC §36B(b)(3)(A)(iii). */

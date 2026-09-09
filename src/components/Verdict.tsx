@@ -1,18 +1,17 @@
 import type { Attribution } from '../engine/attribution'
 import type { HouseholdResult, Platform } from '../engine/types'
 import { usd } from '../lib/format'
-import { AREA_PHRASE } from './PositionsPanel'
+import { AREA_PHRASE } from '../lib/labels'
 import { Delta } from './Delta'
 import { SPENDING_CATEGORIES, resolvedSpending } from '../engine/spending'
-import { PLATFORMS } from '../data/platforms'
 
 /** "spend more on X and Y, less on Z" for the spending clause. */
-function spendingClause(platform: Platform): string | null {
-  const rows = resolvedSpending(platform, PLATFORMS).filter((s) => s.category !== 'deficit')
+function spendingClause(platform: Platform, all: Platform[]): string | null {
+  const rows = resolvedSpending(platform, all).filter((s) => s.category !== 'deficit')
   const label = (id: string) => SPENDING_CATEGORIES.find((c) => c.id === id)?.label.toLowerCase().replace(' & ', ' and ') ?? id
   const more = rows.filter((s) => s.direction === 'more').map((s) => label(s.category))
   const less = rows.filter((s) => s.direction === 'less').map((s) => label(s.category))
-  const deficit = resolvedSpending(platform, PLATFORMS).find((s) => s.category === 'deficit')
+  const deficit = resolvedSpending(platform, all).find((s) => s.category === 'deficit')
   const parts: string[] = []
   if (more.length) parts.push(`spend more on ${list(more)}`)
   if (less.length) parts.push(`less on ${list(less)}`)
@@ -32,10 +31,21 @@ function list(xs: string[]): string {
 interface Props {
   baseline: HouseholdResult
   results: Array<{ platform: Platform; result: HouseholdResult; attribution: Attribution }>
+  all: Platform[]
+  /** Guess-first mode with unrevealed cards: don't spoil the answer. */
+  hidden?: boolean
 }
 
 /** The answer as a sentence with the numbers inside it. */
-export function Verdict({ baseline, results }: Props) {
+export function Verdict({ baseline, results, all, hidden = false }: Props) {
+  if (hidden) {
+    return (
+      <p className="font-serif text-lg text-ink-2">
+        Under current law your household keeps <span className="money font-semibold text-ink">{usd(baseline.netIncome)}</span> a year. Make your
+        guesses below, then reveal to see the comparison.
+      </p>
+    )
+  }
   if (results.length === 0) {
     return (
       <p className="font-serif text-lg text-ink-2">
@@ -44,7 +54,11 @@ export function Verdict({ baseline, results }: Props) {
       </p>
     )
   }
-  const ranked = [...results].sort((a, b) => b.result.netIncome - a.result.netIncome)
+  // Platforms that remove taxes without a modeled replacement can't be ranked against the rest.
+  const funded = results.filter((r) => !r.result.unfunded)
+  const pool = funded.length > 0 ? funded : results
+  const excluded = results.filter((r) => r.result.unfunded && funded.length > 0)
+  const ranked = [...pool].sort((a, b) => b.result.netIncome - a.result.netIncome)
   const best = ranked[0]
   const worst = ranked[ranked.length - 1]
   const bestDelta = best.result.netIncome - baseline.netIncome
@@ -61,14 +75,14 @@ export function Verdict({ baseline, results }: Props) {
     )
   }
 
-  const clause = spendingClause(best.platform)
+  const clause = spendingClause(best.platform, all)
   return (
     <>
     <p className="font-serif text-lg leading-snug text-ink-2">
       Compared with current law (<span className="money font-semibold text-ink">{usd(baseline.netIncome)}</span> a year), your household would keep
       the most under <span className="font-semibold text-ink">{best.platform.name}</span> (<Delta v={bestDelta} animate />
       {topLever && bestDelta > 0 ? <>, mostly from {AREA_PHRASE[topLever.position.area]}</> : null})
-      {results.length > 1 && (
+      {pool.length > 1 && (
         <>
           {' '}
           and {worstDelta > 0 ? 'the smallest gain' : worstDelta < 0 ? 'the biggest loss' : 'no change'} under{' '}
@@ -76,6 +90,13 @@ export function Verdict({ baseline, results }: Props) {
         </>
       )}
       .
+      {excluded.length > 0 && (
+        <span className="text-ink-3">
+          {' '}
+          {excluded.map((r) => r.platform.name).join(' and ')} {excluded.length > 1 ? 'are' : 'is'} left out of this ranking: {excluded.length > 1 ? 'they remove' : 'it removes'}{' '}
+          taxes without a modeled replacement, so the headline gain is overstated.
+        </span>
+      )}
     </p>
     {clause && (
       <p className="mt-2 font-serif text-base leading-snug text-ink-3">

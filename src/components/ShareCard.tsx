@@ -2,7 +2,7 @@ import { forwardRef } from 'react'
 import type { Attribution } from '../engine/attribution'
 import type { HouseholdResult, Platform } from '../engine/types'
 import { usd } from '../lib/format'
-import { AREA_PHRASE } from './PositionsPanel'
+import { AREA_PHRASE } from '../lib/labels'
 
 interface Props {
   baseline: HouseholdResult
@@ -28,6 +28,7 @@ export const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard({ 
     <div
       ref={ref}
       aria-hidden="true"
+      className="no-print"
       style={{
         position: 'fixed',
         left: -20000,

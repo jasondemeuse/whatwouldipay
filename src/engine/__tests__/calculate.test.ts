@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { calculate, acaNetPremium, acaPremiumForHousehold } from '../calculate'
 import { BASELINE_2026 } from '../../data/baseline2026'
+import { applyAssumptions, DEFAULT_ASSUMPTIONS } from '../assumptions'
 import type { Household } from '../types'
 
 const base: Household = {
@@ -109,5 +110,40 @@ describe('child ages', () => {
     const withTeen = calculate({ ...base, wages: 16000, state: 'OH', healthCoverage: 'medicaid', childrenUnder17: 1, childAges: [16], filingStatus: 'hoh' }, BASELINE_2026, 'b')
     expect(withYoung.warnings.some((w) => /work requirement/i.test(w))).toBe(false)
     expect(withTeen.warnings.some((w) => /work requirement/i.test(w))).toBe(true)
+  })
+})
+
+describe('review regressions', () => {
+  it('married filing separately gets no tips, overtime or senior deduction (joint-return rules)', () => {
+    const mfs = calculate({ ...base, filingStatus: 'mfs', wages: 60000, tipIncome: 10000, overtimeIncome: 5000, age: 66 }, BASELINE_2026, 'b')
+    const single = calculate({ ...base, filingStatus: 'single', wages: 60000, tipIncome: 10000, overtimeIncome: 5000, age: 66 }, BASELINE_2026, 'b')
+    expect(mfs.taxableIncome).toBeGreaterThan(single.taxableIncome)
+    expect(mfs.breakdown.some((li) => /Tip|Overtime|Senior/.test(li.label))).toBe(false)
+  })
+  it('Wisconsin adults under 100% FPL are on Medicaid, not in a coverage gap', () => {
+    const r = calculate({ ...base, wages: 12000, state: 'WI', healthCoverage: 'medicaid' }, BASELINE_2026, 'b')
+    expect(r.effectiveCoverage).toBe('medicaid')
+  })
+  it('Social Security benefits follow the §86 provisional-income tiers', () => {
+    // Retired couple: $48k SS + $15k gains → provisional $39k, between $32k and $44k → 50% tier only.
+    const r = calculate({ ...base, filingStatus: 'mfj', wages: 0, socialSecurityBenefits: 48000, longTermGains: 15000, age: 70, spouseAge: 68, healthCoverage: 'medicare' }, BASELINE_2026, 'b')
+    expect(r.agi).toBeCloseTo(15000 + Math.min(24000, 0.5 * (39000 - 32000)), 0)
+  })
+  it('a mixed-age couple gets Medicare for one spouse and the declared coverage for the other', () => {
+    const r = calculate({ ...base, filingStatus: 'mfj', age: 66, spouseAge: 60, wages: 50000, healthCoverage: 'marketplace' }, BASELINE_2026, 'b')
+    expect(r.breakdown.some((li) => /Medicare Part B/.test(li.label))).toBe(true)
+    expect(r.breakdown.some((li) => /Marketplace benchmark premium/.test(li.label))).toBe(true)
+  })
+  it('negative or absurd inputs are clamped', () => {
+    const r = calculate({ ...base, wages: -50000, childrenUnder17: 1e9, age: 999 }, BASELINE_2026, 'b')
+    expect(r.payrollTax).toBe(0)
+    expect(r.grossIncome).toBe(0)
+  })
+  it('applying assumptions twice equals once', () => {
+    const p = structuredClone(BASELINE_2026)
+    applyAssumptions(p, { ...DEFAULT_ASSUMPTIONS, tariffPassThrough: 1.5 })
+    applyAssumptions(p, { ...DEFAULT_ASSUMPTIONS, tariffPassThrough: 1.5 })
+    expect(p.tariffs.passThrough).toBe(1.5)
+    expect(p.tariffs.pctOfIncome).toBe(BASELINE_2026.tariffs.pctOfIncome)
   })
 })

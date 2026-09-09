@@ -3,6 +3,9 @@ import { applyAssumptions } from './assumptions'
 import type { Assumptions, Household, HouseholdResult, Platform, PolicyArea, PolicyParams, PolicyPosition } from './types'
 import { usd } from '../lib/format'
 
+/** Below this many dollars a year a position is reported as having had no effect. */
+const ZERO_DOLLARS = 0.5
+
 export interface AttributionStep {
   position: PolicyPosition
   /** Platform the position came from (the politician, or an inherited party/lane baseline). */
@@ -47,14 +50,11 @@ export function attribute(h: Household, base: PolicyParams, platform: Platform, 
     const before = params
     params = cloneParams(params)
     position.apply(params)
-    applyAssumptions(params, a) // keep assumption-driven fields authoritative
-    // applyAssumptions scales tariffs multiplicatively; re-derive from the start to avoid compounding.
-    params.tariffs.pctOfIncome = start.tariffs.pctOfIncome
-    params.tariffs.maxAnnualCost = start.tariffs.maxAnnualCost
+    applyAssumptions(params, a) // assumptions are authoritative over anything a position might set
     const result = calculate(h, params, platform.id)
     const delta = result.netIncome - prevResult.netIncome
     const step: AttributionStep = { position, source, delta, netAfter: result.netIncome }
-    if (Math.abs(delta) < 0.5) {
+    if (Math.abs(delta) < ZERO_DOLLARS) {
       step.zeroReason = explainZero(position.area, h, before, params, prevResult)
       noEffect.push(step)
     } else {
@@ -89,7 +89,7 @@ function explainZero(area: PolicyArea, h: Household, before: PolicyParams, after
           break
         }
       }
-      const surtax = after.incomeTax.surtaxes.find((s) => !before.incomeTax.surtaxes.includes(s))
+      const surtax = after.incomeTax.surtaxes.find((s) => !before.incomeTax.surtaxes.some((b) => b.rate === s.rate && b.over[fs] === s.over[fs]))
       if (surtax) threshold = Math.min(threshold ?? Infinity, surtax.over[fs])
       if (threshold !== undefined && Number.isFinite(threshold) && r.taxableIncome < threshold)
         return `Rate changes start at ${usd(threshold)} of taxable income; yours is ${usd(r.taxableIncome)}.`

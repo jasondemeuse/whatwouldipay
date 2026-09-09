@@ -342,3 +342,10 @@ export const STATE_LIST: Array<{ code: string; name: string }> = rules
  *   https://www.kff.org/affordable-care-act/state-indicator/state-activity-around-expanding-medicaid-under-the-affordable-care-act/
  */
 export const NON_EXPANSION_STATE_CODES: string[] = ['AL', 'FL', 'GA', 'KS', 'MS', 'SC', 'TN', 'TX', 'WI', 'WY']
+
+/**
+ * Non-expansion states whose waiver covers childless adults up to the given % of poverty, so they have no coverage gap.
+ * Wisconsin: BadgerCare §1115 waiver to 100% FPL (extended through 2029), without the 90% federal match.
+ * https://www.kff.org/affordable-care-act/wisconsins-badgercare-program-and-the-aca/
+ */
+export const WAIVER_ADULT_FPL: Record<string, number> = { WI: 100 }

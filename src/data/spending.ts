@@ -55,5 +55,5 @@ export const FISCAL_2025 = {
   receiptsB: 5234.6,
   deficitB: 1775.4,
   spentPerDollar: 1.34,
-  unifiedBorrowedShare: 0.2531,
+  unifiedBorrowedShare: 0.2533, // 1,775.4 / 7,010.0 (Treasury MTS)
 }

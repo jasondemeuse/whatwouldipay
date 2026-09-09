@@ -23,7 +23,7 @@ export interface Household {
   overtimeIncome: number
   /** Long-term capital gains + qualified dividends. */
   longTermGains: number
-  /** Taxable Social Security benefits received (if retired). */
+  /** Gross Social Security benefits received (if retired); the taxable share is computed per IRC §86. */
   socialSecurityBenefits: number
   age: number
   spouseAge: number
@@ -138,6 +138,8 @@ export interface CapitalGainsParams {
   niitThreshold: ByFilingStatus<number>
   /** If true, gains above `ordinaryAbove` are taxed at ordinary rates (Biden/Harris style). */
   ordinaryAbove?: number
+  /** Extra NIIT rate on investment income for filers with AGI above `over` (Greenbook: +1.2 points above $400k). */
+  niitSurcharge?: { rate: number; over: number }
 }
 
 export interface PayrollParams {
@@ -161,6 +163,8 @@ export interface TariffParams {
   multiplier: number
   /** Tariff-funded rebate paid per household member (e.g. Hawley's American Worker Rebate Act). */
   rebatePerPerson: number
+  /** User assumption: share of tariff cost reaching consumers (0.5 / 1 / 1.5). Applied at the point of use. */
+  passThrough: number
 }
 
 export interface AcaParams {
@@ -208,9 +212,11 @@ export interface MedicareParams {
 
 export interface SinglePayerParams {
   enabled: boolean
-  /** Household income-based premium (Sanders option: 4% above $29k). */
+  /** Household income-based premium (Sanders option: 4% of income after the standard deduction). */
   householdPremiumRate: number
+  /** Flat exemption; when `exemptionIsStandardDeduction` is true the filing-status standard deduction is used instead. */
   householdPremiumExemption: number
+  exemptionIsStandardDeduction: boolean
   /** Employer-side payroll tax (7.5%); shown as passthrough if `employerPassthrough` > 0. */
   employerPayrollRate: number
   employerPassthrough: number
@@ -257,6 +263,8 @@ export interface PolicyParams {
   fpl: { aca: FplTable; medicaid: FplTable }
   /** Platform-level caveats surfaced to the user as warnings (e.g. "funding side not modeled"). */
   caveats: string[]
+  /** True when the platform removes major taxes or programs without a modeled replacement; the UI mutes the headline. */
+  unfunded: boolean
 }
 
 export interface FplTable {
@@ -406,4 +414,6 @@ export interface HouseholdResult {
   breakdown: LineItem[]
   /** Text warnings surfaced to the user (e.g. "loses Medicaid due to work requirement"). */
   warnings: string[]
+  /** Mirrors PolicyParams.unfunded for display. */
+  unfunded: boolean
 }

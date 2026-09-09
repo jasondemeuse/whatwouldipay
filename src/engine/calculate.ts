@@ -12,7 +12,7 @@ import type {
 } from './types'
 import { computeStateTax } from './stateTax'
 import { taxFromBrackets } from './brackets'
-import { NON_EXPANSION_STATE_CODES } from '../data/states'
+import { NON_EXPANSION_STATE_CODES, WAIVER_ADULT_FPL } from '../data/states'
 
 const NON_EXPANSION_STATES = new Set<string>(NON_EXPANSION_STATE_CODES)
 
@@ -99,27 +99,11 @@ function overridesParent(platform: Platform, area: PolicyArea): boolean {
   return platform.positions.some((own) => own.area === area && (own.apply !== undefined || own.holdsCurrentLaw === true))
 }
 
-/** Effective positions for a platform: its own, plus ancestor fallbacks marked `inherited` (nearest ancestor wins per area). */
-export function effectivePositions(platform: Platform, all: Platform[]) {
-  const own = platform.positions
-  const chain = ancestors(platform, all).reverse() // nearest first
-  const inherited: PolicyPosition[] = []
-  const covered = new Set<PolicyArea>()
-  for (const node of chain) {
-    for (const pos of node.positions) {
-      if (covered.has(pos.area)) continue
-      const ownHere = own.some((o) => o.area === pos.area)
-      // Show the ancestor's position when the politician has nothing on the area, or only a note that lets it apply.
-      const show = !ownHere || (pos.apply !== undefined && !overridesParent(platform, pos.area))
-      if (show) {
-        inherited.push({ ...pos, inherited: true, confidence: 'default' })
-        covered.add(pos.area)
-      } else if (ownHere) {
-        covered.add(pos.area)
-      }
-    }
-  }
-  return [...own, ...inherited]
+/** What the drawer shows: exactly what the engine applies, with ancestor positions marked `inherited`. */
+export function effectivePositions(platform: Platform, all: Platform[]): PolicyPosition[] {
+  return resolvedPositions(platform, all).map(({ position, source }) =>
+    source.id === platform.id ? position : { ...position, inherited: true, confidence: 'default' as const },
+  )
 }
 
 // ---------- core ----------
@@ -134,7 +118,32 @@ export function employerPremiumReturnedAsWages(h: Household, p: PolicyParams): n
   return Math.max(0, total - worker)
 }
 
-export function calculate(input: Household, p: PolicyParams, platformId: string): HouseholdResult {
+/** Clamp user-supplied numbers so the engine never sees negatives or absurd magnitudes. */
+export function sanitizeHousehold(h: Household): Household {
+  const money = (n: unknown) => (Number.isFinite(Number(n)) ? Math.min(Math.max(0, Number(n)), 1e8) : 0)
+  const count = (n: unknown, max: number) => (Number.isFinite(Number(n)) ? Math.min(Math.max(0, Math.floor(Number(n))), max) : 0)
+  return {
+    ...h,
+    wages: money(h.wages),
+    spouseWages: money(h.spouseWages),
+    selfEmploymentIncome: money(h.selfEmploymentIncome),
+    tipIncome: money(h.tipIncome),
+    overtimeIncome: money(h.overtimeIncome),
+    longTermGains: money(h.longTermGains),
+    socialSecurityBenefits: money(h.socialSecurityBenefits),
+    saltPaid: money(h.saltPaid),
+    otherItemized: money(h.otherItemized),
+    employerPremiumEmployeeShare: h.employerPremiumEmployeeShare === undefined ? undefined : money(h.employerPremiumEmployeeShare),
+    age: count(h.age, 120),
+    spouseAge: count(h.spouseAge, 120),
+    childrenUnder17: count(h.childrenUnder17, 12),
+    otherDependents: count(h.otherDependents, 12),
+    childAges: (h.childAges ?? []).slice(0, 12).map((a) => count(a, 17)),
+  }
+}
+
+export function calculate(raw: Household, p: PolicyParams, platformId: string): HouseholdResult {
+  const input = sanitizeHousehold(raw)
   const returnedPremium = employerPremiumReturnedAsWages(input, p)
   const h: Household = returnedPremium > 0 ? { ...input, wages: input.wages + returnedPremium } : input
   const fs: FilingStatus = h.filingStatus
@@ -171,8 +180,9 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
 
   // ----- AGI -----
   const halfSeTax = seTax * p.payroll.seTaxDeductionFraction
-  const taxableSS = p.incomeTax.socialSecurityBenefitTaxable ? h.socialSecurityBenefits * 0.85 : 0
-  const agi = wages + seIncome + h.longTermGains + taxableSS - halfSeTax
+  const otherIncome = wages + seIncome + h.longTermGains - halfSeTax
+  const taxableSS = p.incomeTax.socialSecurityBenefitTaxable ? taxableSocialSecurity(h.socialSecurityBenefits, otherIncome, fs) : 0
+  const agi = otherIncome + taxableSS
 
   // ----- Deductions -----
   const ded = p.deductions
@@ -193,21 +203,23 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
   const itemizes = itemized > stdDed
   let deduction = itemizes ? itemized : stdDed
 
+  // OBBBA's tips (§224(f)), overtime (§225(e)) and senior (§151(d)(5)(C)(v)) deductions require a joint return if married.
+  const jointReturnOk = fs !== 'mfs'
   // Above/below-the-line OBBBA deductions available to itemizers and non-itemizers alike
-  if (ded.tips.enabled && h.tipIncome > 0) {
+  if (jointReturnOk && ded.tips.enabled && h.tipIncome > 0) {
     let allowed = Math.min(h.tipIncome, ded.tips.cap)
     allowed = Math.max(0, allowed - Math.max(0, agi - ded.tips.phaseoutStart[fs]) * ded.tips.phaseoutRate)
     deduction += allowed
     if (allowed > 0) breakdown.push({ label: 'Tip income deduction', amount: allowed })
   }
-  if (ded.overtime.enabled && h.overtimeIncome > 0) {
+  if (jointReturnOk && ded.overtime.enabled && h.overtimeIncome > 0) {
     let allowed = Math.min(h.overtimeIncome, ded.overtime.cap[fs])
     allowed = Math.max(0, allowed - Math.max(0, agi - ded.overtime.phaseoutStart[fs]) * ded.overtime.phaseoutRate)
     deduction += allowed
     if (allowed > 0) breakdown.push({ label: 'Overtime deduction', amount: allowed })
   }
   // Senior deduction (OBBBA §70103)
-  if (seniors > 0 && p.incomeTax.seniorDeduction.amount > 0) {
+  if (jointReturnOk && seniors > 0 && p.incomeTax.seniorDeduction.amount > 0) {
     const sd = p.incomeTax.seniorDeduction
     let allowed = sd.amount * seniors
     allowed = Math.max(0, allowed - Math.max(0, agi - sd.phaseoutStart[fs]) * sd.phaseoutRate)
@@ -242,6 +254,9 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
     }
     const niit = Math.max(0, Math.min(gainsInTaxable, agi - cg.niitThreshold[fs])) * cg.niitRate
     gainsTax += niit
+    if (cg.niitSurcharge && agi > cg.niitSurcharge.over) {
+      gainsTax += Math.max(0, Math.min(gainsInTaxable, agi - cg.niitSurcharge.over)) * cg.niitSurcharge.rate
+    }
   }
 
   // Surtaxes (e.g. millionaire surtax) on taxable income above threshold
@@ -309,7 +324,7 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
 
   // ----- Tariffs -----
   const tariffCost =
-    Math.min(grossIncome * p.tariffs.pctOfIncome, p.tariffs.maxAnnualCost) * p.tariffs.multiplier -
+    Math.min(grossIncome * p.tariffs.pctOfIncome, p.tariffs.maxAnnualCost) * p.tariffs.passThrough * p.tariffs.multiplier -
     p.tariffs.rebatePerPerson * householdSize(h)
   warnings.push(...p.caveats)
 
@@ -333,7 +348,23 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
     effectiveFederalRate: grossIncome > 0 ? (federalIncomeTax + payrollTax) / grossIncome : 0,
     breakdown: [...breakdown, ...health.items],
     warnings,
+    unfunded: p.unfunded,
   }
+}
+
+/**
+ * IRC §86: Social Security benefits are included in income at 0%, up to 50%, or up to 85% depending on
+ * "provisional income" (other income + half of benefits). Thresholds are unindexed: $25k/$34k single, $32k/$44k joint,
+ * $0 for married filing separately (living with spouse).
+ */
+export function taxableSocialSecurity(benefits: number, otherIncome: number, fs: FilingStatus): number {
+  if (benefits <= 0) return 0
+  const [base, adj] = fs === 'mfj' ? [32000, 44000] : fs === 'mfs' ? [0, 0] : [25000, 34000]
+  const provisional = otherIncome + 0.5 * benefits
+  if (provisional <= base) return 0
+  if (provisional <= adj) return Math.min(0.5 * benefits, 0.5 * (provisional - base))
+  const tier1 = Math.min(0.5 * benefits, 0.5 * (adj - base))
+  return Math.min(0.85 * benefits, 0.85 * (provisional - adj) + tier1)
 }
 
 function stackedGainsTax(ordinaryTaxable: number, gains: number, brackets: Bracket[]): number {
@@ -365,26 +396,30 @@ export function acaPremiumForHousehold(h: Household, p: PolicyParams): number {
   return total
 }
 
-function computeHealthcare(h: Household, p: PolicyParams, agi: number, warnings: string[]): HealthOutcome {
+function computeHealthcare(h: Household, p: PolicyParams, agi: number, warnings: string[], skipMedicare = false): HealthOutcome {
   const items: LineItem[] = []
   const acaFplPct = (agi / fplFor(h, p.fpl.aca)) * 100
   const medicaidFplPct = (agi / fplFor(h, p.fpl.medicaid)) * 100
-  const isFamily = householdSize(h) > 1
+  const adultsOnMedicare0 =
+    (h.age >= p.medicare.eligibilityAge ? 1 : 0) + (h.filingStatus === 'mfj' && h.spouseAge >= p.medicare.eligibilityAge ? 1 : 0)
+  const isFamily = householdSize(h) - (skipMedicare ? adultsOnMedicare0 : 0) > 1
   const adultsOnMedicare =
     (h.age >= p.medicare.eligibilityAge ? 1 : 0) + (h.filingStatus === 'mfj' && h.spouseAge >= p.medicare.eligibilityAge ? 1 : 0)
 
   // Single payer replaces everything for under-Medicare-age households.
   if (p.singlePayer.enabled) {
     const sp = p.singlePayer
-    const premium = Math.max(0, agi - sp.householdPremiumExemption) * sp.householdPremiumRate
+    const exemption = sp.exemptionIsStandardDeduction ? p.incomeTax.standardDeduction[h.filingStatus] : sp.householdPremiumExemption
+    const premium = Math.max(0, agi - exemption) * sp.householdPremiumRate
     const passthrough = (h.wages + (h.filingStatus === 'mfj' ? h.spouseWages : 0)) * sp.employerPayrollRate * sp.employerPassthrough
     items.push({ label: 'Single-payer income premium', amount: premium })
     if (passthrough > 0) items.push({ label: 'Employer payroll tax passed to wages (est.)', amount: passthrough })
     return { cost: premium + passthrough, coverage: 'singlePayer', items }
   }
 
-  // Medicare-age households
-  if (h.healthCoverage === 'medicare' || adultsOnMedicare > 0) {
+  // Medicare-age adults. A mixed-age couple gets Medicare for the eligible spouse and the household's declared
+  // coverage for the rest.
+  if (!skipMedicare && (h.healthCoverage === 'medicare' || adultsOnMedicare > 0)) {
     const m = p.medicare
     let partB = m.partBPremiumMonthly
     for (const tier of m.irmaa) {
@@ -396,6 +431,12 @@ function computeHealthcare(h: Household, p: PolicyParams, agi: number, warnings:
     const oop = m.avgOutOfPocket * n
     items.push({ label: `Medicare Part B premium (${n})`, amount: premiums })
     items.push({ label: 'Medicare out-of-pocket (est.)', amount: oop })
+    const adults = h.filingStatus === 'mfj' ? 2 : 1
+    const othersRemain = adults - adultsOnMedicare > 0 || h.childrenUnder17 + h.otherDependents > 0
+    if (h.healthCoverage !== 'medicare' && othersRemain) {
+      const rest = computeHealthcare(h, p, agi, warnings, true)
+      return { cost: premiums + oop + rest.cost, coverage: 'medicare', items: [...items, ...rest.items] }
+    }
     return { cost: premiums + oop, coverage: 'medicare', items }
   }
 
@@ -416,8 +457,11 @@ function computeHealthcare(h: Household, p: PolicyParams, agi: number, warnings:
     case 'uninsured': {
       // Medicaid eligibility check
       const expansionState = p.medicaid.nationalExpansion || !NON_EXPANSION_STATES.has(h.state)
+      // Non-expansion states with a waiver covering childless adults (Wisconsin to 100% FPL) have no coverage gap.
+      const waiverFpl = expansionState ? undefined : WAIVER_ADULT_FPL[h.state]
       const medicaidEligible =
-        !p.medicaid.repealExpansion && expansionState && medicaidFplPct <= p.medicaid.expansionThresholdFpl
+        !p.medicaid.repealExpansion &&
+        ((expansionState && medicaidFplPct <= p.medicaid.expansionThresholdFpl) || (waiverFpl !== undefined && medicaidFplPct <= waiverFpl))
       if (medicaidEligible) {
         let cost = 0
         const caretakerExempt = childAges(h).some((a) => a < 14)
@@ -443,7 +487,7 @@ function computeHealthcare(h: Household, p: PolicyParams, agi: number, warnings:
         else warnings.push(`${h.state} has not expanded Medicaid; adults below 100% FPL fall in the coverage gap.`)
       }
       // Coverage gap: below 100% FPL in a non-expansion state → no subsidy
-      if (!expansionState && acaFplPct < p.aca.minFplPct) {
+      if (!expansionState && waiverFpl === undefined && acaFplPct < p.aca.minFplPct) {
         items.push({ label: 'Uninsured out-of-pocket (est.)', amount: p.uninsured.avgOutOfPocket })
         return { cost: p.uninsured.avgOutOfPocket, coverage: 'coverageGap', items }
       }

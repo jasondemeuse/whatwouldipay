@@ -1,27 +1,11 @@
 import type { Party, Platform } from '../engine/types'
 import { Avatar } from './Avatar'
+import { PARTY_DOT, PARTY_NAME } from '../lib/labels'
 
 interface Props {
   platforms: Platform[]
   selected: string[]
   onChange: (ids: string[]) => void
-}
-
-/** Party identity as a small dot only. Fills stay neutral so the control never reads as a judgment. */
-export const PARTY_DOT: Record<Party, string> = {
-  D: 'var(--color-party-d)',
-  R: 'var(--color-party-r)',
-  I: 'var(--color-party-i)',
-  L: 'var(--color-party-l)',
-  G: 'var(--color-party-g)',
-}
-
-export const PARTY_NAME: Record<Party, string> = {
-  D: 'Democrat',
-  R: 'Republican',
-  I: 'Independent',
-  L: 'Libertarian',
-  G: 'Green',
 }
 
 export function PlatformPicker({ platforms, selected, onChange }: Props) {
@@ -47,7 +31,7 @@ export function PlatformPicker({ platforms, selected, onChange }: Props) {
                   key={p.id}
                   type="button"
                   aria-pressed={on}
-                  aria-label={`${p.name}, ${p.role}${on ? ', selected' : ''}`}
+                  aria-label={`${p.name}, ${p.role}`}
                   onClick={() => toggle(p.id)}
                   className={`group inline-flex min-h-9 items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-medium transition-colors duration-150 ${
                     on
@@ -59,7 +43,7 @@ export function PlatformPicker({ platforms, selected, onChange }: Props) {
                   <span className="whitespace-nowrap">{p.shortName}</span>
                   <span
                     aria-hidden="true"
-                    className="inline-block h-2 w-2 rounded-full ring-1 ring-white/60"
+                    className="inline-block h-2 w-2 rounded-full ring-1 ring-card"
                     style={{ background: PARTY_DOT[p.party] }}
                     title={PARTY_NAME[p.party]}
                   />

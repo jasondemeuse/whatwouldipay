@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HouseholdForm } from './components/HouseholdForm'
 import { PlatformPicker } from './components/PlatformPicker'
 import { ResultsView } from './components/ResultsView'
@@ -20,12 +20,10 @@ import { applyAssumptions, DEFAULT_ASSUMPTIONS } from './engine/assumptions'
 import type { Assumptions, Household } from './engine/types'
 import { BASELINE_2026 } from './data/baseline2026'
 import { PLATFORMS } from './data/platforms'
-import { PERSONAS } from './data/personas'
+import { PERSONAS, URL_DEFAULT_HOUSEHOLD } from './data/personas'
+import { SITE } from './lib/labels'
 
 const DEFAULT_HOUSEHOLD: Household = PERSONAS[0].household
-
-/** Stamp shown in the trust line. Update when the dataset or baseline changes. */
-const MODEL_UPDATED = '2026-09-08'
 
 const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 
@@ -35,7 +33,7 @@ const PLATFORM_IDS = new Set(PLATFORMS.map((p) => p.id))
 
 /** Initial state: URL beats saved state beats defaults. */
 function load(): { household: Household; selected: string[]; assumptions: Assumptions } | null {
-  const fromUrl = parseUrl(window.location.search, DEFAULT_HOUSEHOLD, PLATFORM_IDS)
+  const fromUrl = parseUrl(window.location.search, URL_DEFAULT_HOUSEHOLD, PLATFORM_IDS)
   if (fromUrl) return fromUrl
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -63,24 +61,27 @@ function useHashRoute() {
 
 export default function App() {
   const route = useHashRoute()
-  const saved = useMemo(load, [])
+  const [saved] = useState(load)
   const shareCardRef = useRef<HTMLDivElement>(null)
   const [household, setHousehold] = useState<Household>(saved?.household ?? DEFAULT_HOUSEHOLD)
   const [selected, setSelected] = useState<string[]>(saved?.selected ?? DEFAULT_SELECTION)
   const [assumptions, setAssumptions] = useState<Assumptions>(saved?.assumptions ?? DEFAULT_ASSUMPTIONS)
   const [positionsFor, setPositionsFor] = useState<string | null>(null)
   const [explainFor, setExplainFor] = useState<string | null>(null)
+  const [guessMode, setGuessMode] = useState(false)
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({})
+  const closePositions = useCallback(() => setPositionsFor(null), [])
 
-  const url = useMemo(() => permalink({ household, selected, assumptions }, DEFAULT_HOUSEHOLD), [household, selected, assumptions])
+  const url = useMemo(() => permalink({ household, selected, assumptions }, URL_DEFAULT_HOUSEHOLD, route), [household, selected, assumptions, route])
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ household, selected, assumptions }))
-    } catch {
-      /* ignore */
-    }
-    // Keep the address bar in sync so the current view is always a permalink (debounced; no history spam).
+    // Persist and keep the address bar in sync so the current view is always a permalink (debounced; no history spam).
     const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ household, selected, assumptions }))
+      } catch {
+        /* ignore */
+      }
       if (window.location.href !== url) window.history.replaceState(null, '', url)
     }, 300)
     return () => clearTimeout(t)
@@ -90,18 +91,27 @@ export default function App() {
     () => calculate(household, applyAssumptions(cloneParams(BASELINE_2026), assumptions), 'baseline'),
     [household, assumptions],
   )
-  const results = useMemo(
-    () =>
-      selected
-        .map((id) => PLATFORMS.find((p) => p.id === id))
-        .filter((p): p is NonNullable<typeof p> => !!p)
-        .map((platform) => ({
+  const results = useMemo(() => {
+    const baselineKey = JSON.stringify(applyAssumptions(cloneParams(BASELINE_2026), assumptions))
+    const rows = selected
+      .map((id) => PLATFORMS.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => !!p)
+      .map((platform) => {
+        const params = applyAssumptions(applyPlatform(BASELINE_2026, platform, PLATFORMS), assumptions)
+        return {
           platform,
-          result: calculate(household, applyAssumptions(applyPlatform(BASELINE_2026, platform, PLATFORMS), assumptions), platform.id),
+          key: JSON.stringify(params),
+          result: calculate(household, params, platform.id),
           attribution: attribute(household, BASELINE_2026, platform, PLATFORMS, assumptions),
-        })),
-    [household, selected, assumptions],
-  )
+        }
+      })
+    // Flag platforms whose modeled parameters are identical to current law or to an earlier-selected platform.
+    return rows.map((r, i) => {
+      const twin = rows.slice(0, i).find((o) => o.key === r.key)
+      const sameAs = r.key === baselineKey ? 'baseline' : twin?.platform.name
+      return { ...r, sameAs }
+    })
+  }, [household, selected, assumptions])
 
   const panelPlatform = positionsFor ? PLATFORMS.find((p) => p.id === positionsFor) : undefined
   const explain = explainFor ? results.find((r) => r.platform.id === explainFor) : undefined
@@ -112,12 +122,21 @@ export default function App() {
   const sourceCount = new Set(PLATFORMS.flatMap((p) => p.positions.flatMap((x) => x.citations.map((c) => c.url)))).size
   const isMethodology = route.startsWith('#/methodology')
   const householdLabel = `${household.filingStatus === 'mfj' ? 'Married couple' : household.filingStatus === 'hoh' ? 'Head of household' : 'Single filer'}, ${usdShort(
-    household.wages + (household.filingStatus === 'mfj' ? household.spouseWages : 0) + household.selfEmploymentIncome,
+    baseline.grossIncome,
   )} income${household.childrenUnder17 ? `, ${household.childrenUnder17} ${household.childrenUnder17 === 1 ? 'child' : 'children'}` : ''}, ${household.state}`
 
   return (
     <div className="min-h-screen">
-      <a href="#main" className="skip-link">
+      <a
+        href="#main"
+        className="skip-link"
+        onClick={(e) => {
+          e.preventDefault()
+          const main = document.getElementById('main')
+          main?.setAttribute('tabindex', '-1')
+          main?.focus()
+        }}
+      >
         Skip to results
       </a>
       <header className="border-b border-rule bg-card">
@@ -136,7 +155,7 @@ export default function App() {
             </div>
             <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
               <li>
-                Model updated <time dateTime={MODEL_UPDATED}>Sept 8, 2026</time>
+                Model updated <time dateTime={SITE.modelUpdated}>{SITE.modelUpdatedLabel}</time>
               </li>
               <li>
                 {politicianCount} politicians · {sourceCount} sources
@@ -147,7 +166,7 @@ export default function App() {
                 </a>
               </li>
               <li>
-                <a href="https://github.com/" className="underline hover:text-ink" rel="noreferrer">
+                <a href={SITE.repo} className="underline hover:text-ink" target="_blank" rel="noreferrer">
                   Source on GitHub
                 </a>
               </li>
@@ -178,15 +197,24 @@ export default function App() {
             <h2 id="verdict-h" className="sr-only">
               Summary
             </h2>
-            <Verdict baseline={baseline} results={results} />
+            <Verdict baseline={baseline} results={results} all={PLATFORMS} hidden={guessMode && results.some((r) => !revealed[r.platform.id])} />
             <div className="mt-3 border-t border-rule-2 pt-3">
-              <ShareBar url={url} title="What Would I Pay?" imageNode={shareCardRef} imageName={`what-would-i-pay-${household.state}.png`} />
+              <ShareBar url={url} title="What Would I Pay?" imageNode={results.length ? shareCardRef : undefined} imageName={`what-would-i-pay-${household.state}.png`} />
             </div>
           </section>
 
           <ResultsView
             baseline={baseline}
             results={results}
+            all={PLATFORMS}
+            guessMode={guessMode}
+            revealed={revealed}
+            onGuessModeChange={(on) => {
+              setGuessMode(on)
+              setRevealed({})
+            }}
+            onReveal={(id) => setRevealed((r) => ({ ...r, [id]: true }))}
+            onRevealAll={() => setRevealed(Object.fromEntries(results.map((r) => [r.platform.id, true])))}
             onShowPositions={setPositionsFor}
             onExplain={(id) => setExplainFor(explainFor === id ? null : id)}
             explaining={explainFor}
@@ -209,10 +237,12 @@ export default function App() {
       )}
 
       {!isMethodology && results.length > 0 && (
-        <ShareCard ref={shareCardRef} baseline={baseline} results={results} householdLabel={householdLabel} date="Sept 2026" url={url} />
+        <ShareCard ref={shareCardRef} baseline={baseline} results={results} householdLabel={householdLabel} date={SITE.modelUpdatedLabel} url={url} />
       )}
-      {panelPlatform && <PositionsPanel platform={panelPlatform} all={PLATFORMS} onClose={() => setPositionsFor(null)} />}
-      {!isMethodology && results.length > 0 && <MobileSummary baseline={baseline} results={results} />}
+      {panelPlatform && <PositionsPanel platform={panelPlatform} all={PLATFORMS} onClose={closePositions} />}
+      {!isMethodology && results.length > 0 && !(guessMode && results.some((r) => !revealed[r.platform.id])) && (
+        <MobileSummary baseline={baseline} results={results} />
+      )}
     </div>
   )
 }
@@ -268,8 +298,8 @@ function Methodology() {
         </li>
         <li>
           <strong>Photos</strong> are official government portraits in the public domain, except where credited on the{' '}
-          <a href="/avatars/CREDITS.md" className="underline">
-            credits page
+          <a href="#/methodology" className="underline">
+            methodology page
           </a>
           . Nobody depicted endorses this tool.
         </li>
