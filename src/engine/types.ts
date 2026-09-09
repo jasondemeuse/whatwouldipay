@@ -212,6 +212,8 @@ export interface SinglePayerParams {
   /** Employer-side payroll tax (7.5%); shown as passthrough if `employerPassthrough` > 0. */
   employerPayrollRate: number
   employerPassthrough: number
+  /** If true, the employer's share of today's premium is assumed to return to the worker as taxable wages. */
+  employerPremiumToWages: boolean
   /** Marginal-rate surcharge for very high earners (Sanders: 40% above $10M etc.). Simplified as surtaxes in IncomeTaxParams. */
 }
 
@@ -263,6 +265,17 @@ export interface FplTable {
   hi: number[]
   perAdditional: { base: number; ak: number; hi: number }
   source: string
+}
+
+// ---------- User-adjustable modeling assumptions ----------
+
+export interface Assumptions {
+  /** Under single payer, does the employer's premium share become taxable wages? */
+  employerPremiumToWages: boolean
+  /** Share of a single-payer employer payroll premium passed to workers as lower wages (0, 0.5, 1). */
+  employerPayrollPassthrough: number
+  /** Multiplier on the share of tariff cost reaching consumers (0.5, 1, 1.5). */
+  tariffPassThrough: number
 }
 
 // ---------- Platforms (politicians / parties) ----------

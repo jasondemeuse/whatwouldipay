@@ -68,16 +68,22 @@ function ancestors(platform: Platform, all: Platform[]): Platform[] {
   return chain
 }
 
-export function applyPlatform(baseline: PolicyParams, platform: Platform, all: Platform[]): PolicyParams {
-  const params = cloneParams(baseline)
+/** Positions that take effect for a platform, root-most ancestor first, each tagged with its source platform. */
+export function resolvedPositions(platform: Platform, all: Platform[]): Array<{ position: PolicyPosition; source: Platform }> {
   const chain = [...ancestors(platform, all), platform]
-  // Apply root-most first; a position applies only if no descendant overrides that area.
+  const out: Array<{ position: PolicyPosition; source: Platform }> = []
   chain.forEach((node, i) => {
     const descendants = chain.slice(i + 1)
-    for (const pos of node.positions) {
-      if (!descendants.some((d) => overridesParent(d, pos.area))) pos.apply?.(params)
+    for (const position of node.positions) {
+      if (!descendants.some((d) => overridesParent(d, position.area))) out.push({ position, source: node })
     }
   })
+  return out
+}
+
+export function applyPlatform(baseline: PolicyParams, platform: Platform, all: Platform[]): PolicyParams {
+  const params = cloneParams(baseline)
+  for (const { position } of resolvedPositions(platform, all)) position.apply?.(params)
   return params
 }
 
@@ -111,11 +117,24 @@ export function effectivePositions(platform: Platform, all: Platform[]) {
 
 // ---------- core ----------
 
-export function calculate(h: Household, p: PolicyParams, platformId: string): HouseholdResult {
+/** Employer share of premium that would return to the worker as wages under single payer, if that assumption is on. */
+export function employerPremiumReturnedAsWages(h: Household, p: PolicyParams): number {
+  if (!p.singlePayer.enabled || !p.singlePayer.employerPremiumToWages || h.healthCoverage !== 'employer') return 0
+  if (h.age >= p.medicare.eligibilityAge) return 0
+  const family = householdSize(h) > 1
+  const total = family ? p.employerInsurance.avgTotalPremiumFamily : p.employerInsurance.avgTotalPremiumSingle
+  const worker = h.employerPremiumEmployeeShare ?? (family ? p.employerInsurance.avgWorkerContributionFamily : p.employerInsurance.avgWorkerContributionSingle)
+  return Math.max(0, total - worker)
+}
+
+export function calculate(input: Household, p: PolicyParams, platformId: string): HouseholdResult {
+  const returnedPremium = employerPremiumReturnedAsWages(input, p)
+  const h: Household = returnedPremium > 0 ? { ...input, wages: input.wages + returnedPremium } : input
   const fs: FilingStatus = h.filingStatus
   const warnings: string[] = []
   const breakdown: LineItem[] = []
   const isJoint = fs === 'mfj'
+  if (returnedPremium > 0) breakdown.push({ label: 'Employer premium share returned as taxable wages (assumption)', amount: returnedPremium })
 
   const wages = h.wages + (isJoint ? h.spouseWages : 0)
   const seIncome = Math.max(0, h.selfEmploymentIncome)

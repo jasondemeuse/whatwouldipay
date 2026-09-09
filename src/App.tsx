@@ -3,8 +3,13 @@ import { HouseholdForm } from './components/HouseholdForm'
 import { PlatformPicker } from './components/PlatformPicker'
 import { ResultsView } from './components/ResultsView'
 import { PositionsPanel } from './components/PositionsPanel'
-import { applyPlatform, calculate } from './engine/calculate'
-import type { Household } from './engine/types'
+import { WhyPanel } from './components/WhyPanel'
+import { LeverMatrix } from './components/LeverMatrix'
+import { AssumptionsPanel } from './components/AssumptionsPanel'
+import { applyPlatform, calculate, cloneParams } from './engine/calculate'
+import { attribute } from './engine/attribution'
+import { applyAssumptions, DEFAULT_ASSUMPTIONS } from './engine/assumptions'
+import type { Assumptions, Household } from './engine/types'
 import { BASELINE_2026 } from './data/baseline2026'
 import { PLATFORMS } from './data/platforms'
 
@@ -31,12 +36,16 @@ const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 
 const STORAGE_KEY = 'wwip:v1'
 
-function load(): { household: Household; selected: string[] } | null {
+function load(): { household: Household; selected: string[]; assumptions: Assumptions } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    return { household: { ...DEFAULT_HOUSEHOLD, ...parsed.household }, selected: parsed.selected ?? DEFAULT_SELECTION }
+    return {
+      household: { ...DEFAULT_HOUSEHOLD, ...parsed.household },
+      selected: parsed.selected ?? DEFAULT_SELECTION,
+      assumptions: { ...DEFAULT_ASSUMPTIONS, ...parsed.assumptions },
+    }
   } catch {
     return null
   }
@@ -46,17 +55,22 @@ export default function App() {
   const saved = useMemo(load, [])
   const [household, setHousehold] = useState<Household>(saved?.household ?? DEFAULT_HOUSEHOLD)
   const [selected, setSelected] = useState<string[]>(saved?.selected ?? DEFAULT_SELECTION)
+  const [assumptions, setAssumptions] = useState<Assumptions>(saved?.assumptions ?? DEFAULT_ASSUMPTIONS)
   const [positionsFor, setPositionsFor] = useState<string | null>(null)
+  const [explainFor, setExplainFor] = useState<string | null>(null)
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ household, selected }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ household, selected, assumptions }))
     } catch {
       /* ignore */
     }
-  }, [household, selected])
+  }, [household, selected, assumptions])
 
-  const baseline = useMemo(() => calculate(household, BASELINE_2026, 'baseline'), [household])
+  const baseline = useMemo(
+    () => calculate(household, applyAssumptions(cloneParams(BASELINE_2026), assumptions), 'baseline'),
+    [household, assumptions],
+  )
   const results = useMemo(
     () =>
       selected
@@ -64,12 +78,16 @@ export default function App() {
         .filter((p): p is NonNullable<typeof p> => !!p)
         .map((platform) => ({
           platform,
-          result: calculate(household, applyPlatform(BASELINE_2026, platform, PLATFORMS), platform.id),
+          result: calculate(household, applyAssumptions(applyPlatform(BASELINE_2026, platform, PLATFORMS), assumptions), platform.id),
+          attribution: attribute(household, BASELINE_2026, platform, PLATFORMS, assumptions),
         })),
-    [household, selected],
+    [household, selected, assumptions],
   )
 
   const panelPlatform = positionsFor ? PLATFORMS.find((p) => p.id === positionsFor) : undefined
+  const explain = explainFor ? results.find((r) => r.platform.id === explainFor) : undefined
+  const singlePayerSelected = results.some((r) => r.result.effectiveCoverage === 'singlePayer')
+  const closeExplain = () => setExplainFor(null)
 
   return (
     <div className="min-h-screen">
@@ -98,7 +116,22 @@ export default function App() {
             <PlatformPicker platforms={PLATFORMS} selected={selected} onChange={setSelected} />
           </div>
 
-          <ResultsView baseline={baseline} results={results} onShowPositions={setPositionsFor} />
+          <ResultsView
+            baseline={baseline}
+            results={results}
+            onShowPositions={setPositionsFor}
+            onExplain={(id) => setExplainFor(explainFor === id ? null : id)}
+            explaining={explainFor}
+            whyPanel={
+              explain ? (
+                <WhyPanel platform={explain.platform} attribution={explain.attribution} onClose={closeExplain} onShowPositions={setPositionsFor} />
+              ) : null
+            }
+          />
+
+          <LeverMatrix rows={results} onShowPositions={setPositionsFor} onExplain={setExplainFor} />
+
+          <AssumptionsPanel value={assumptions} onChange={setAssumptions} singlePayerSelected={singlePayerSelected} />
 
           <Methodology />
         </section>

@@ -2,6 +2,9 @@
 
 :root {
   color-scheme: light;
+  /* Polarity colors for "you gain / you lose". Deliberately not blue/red, which read as party colors here. */
+  --gain: #1baf7a;
+  --loss: #eb6834;
 }
 
 body {

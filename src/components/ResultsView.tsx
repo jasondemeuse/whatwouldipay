@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import type { HouseholdResult, Platform } from '../engine/types'
 import { usd, pct } from '../lib/format'
+import { Delta } from './WhyPanel'
 
 interface Props {
   baseline: HouseholdResult
   results: Array<{ platform: Platform; result: HouseholdResult }>
   onShowPositions: (platformId: string) => void
+  onExplain: (platformId: string) => void
+  explaining: string | null
+  whyPanel: React.ReactNode
 }
 
 const COVERAGE_LABEL: Record<string, string> = {
@@ -18,7 +22,7 @@ const COVERAGE_LABEL: Record<string, string> = {
   coverageGap: 'Coverage gap (uninsured)',
 }
 
-export function ResultsView({ baseline, results, onShowPositions }: Props) {
+export function ResultsView({ baseline, results, onShowPositions, onExplain, explaining, whyPanel }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const rows = [{ platform: null as Platform | null, result: baseline }, ...results]
   const maxAbsDelta = Math.max(1, ...results.map((r) => Math.abs(r.result.netIncome - baseline.netIncome)))
@@ -41,22 +45,36 @@ export function ResultsView({ baseline, results, onShowPositions }: Props) {
                   <div className="text-xs text-slate-500">{platform ? platform.role : 'Baseline after the 2025 tax law'}</div>
                 </div>
                 {platform && (
-                  <button
-                    type="button"
-                    onClick={() => onShowPositions(platform.id)}
-                    className="shrink-0 rounded-md border border-slate-200 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-50"
-                  >
-                    Positions
-                  </button>
+                  <div className="flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onExplain(platform.id)}
+                      aria-pressed={explaining === platform.id}
+                      className={`rounded-md border px-2 py-0.5 text-xs ${
+                        explaining === platform.id ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      Why?
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onShowPositions(platform.id)}
+                      className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-50"
+                    >
+                      Positions
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="mt-3">
                 <div className="text-xs uppercase tracking-wide text-slate-500">Money left after taxes & healthcare</div>
                 <div className="text-2xl font-bold tabular-nums text-slate-900">{usd(result.netIncome)}</div>
                 {!isBase && (
-                  <div className={`mt-1 text-sm font-semibold tabular-nums ${delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {usd(delta, { sign: true })} vs. current law
-                    <span className="ml-1 font-normal text-slate-500">({delta >= 0 ? '+' : ''}{usd(delta / 12, { sign: false })}/mo)</span>
+                  <div className="mt-1 text-sm font-semibold text-slate-900">
+                    <Delta v={delta} /> <span className="font-normal text-slate-600">vs. current law</span>
+                    <span className="ml-1 font-normal tabular-nums text-slate-500">
+                      ({delta >= 0 ? '+' : '−'}{usd(Math.abs(delta) / 12)}/mo)
+                    </span>
                   </div>
                 )}
               </div>
@@ -65,8 +83,9 @@ export function ResultsView({ baseline, results, onShowPositions }: Props) {
                   <div className="relative h-full w-full">
                     <div className="absolute left-1/2 top-0 h-full w-px bg-slate-300" />
                     <div
-                      className={`absolute top-0 h-full ${delta >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                      className="absolute top-0 h-full"
                       style={{
+                        background: delta >= 0 ? 'var(--gain)' : 'var(--loss)',
                         left: delta >= 0 ? '50%' : `${50 - (Math.abs(delta) / maxAbsDelta) * 50}%`,
                         width: `${(Math.abs(delta) / maxAbsDelta) * 50}%`,
                       }}
@@ -90,6 +109,8 @@ export function ResultsView({ baseline, results, onShowPositions }: Props) {
           )
         })}
       </div>
+
+      {whyPanel}
 
       {/* Comparison table */}
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -191,7 +212,9 @@ function Row({
           <td key={result.platformId} className="px-4 py-2 text-right">
             <div>{usd(v)}</div>
             {platform && baselineRow && Math.abs(d) >= 1 && (
-              <div className={`text-xs ${(cost ? -d : d) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{usd(d, { sign: true })}</div>
+              <div className="text-xs text-slate-600">
+                <Delta v={cost ? -d : d} />
+              </div>
             )}
           </td>
         )

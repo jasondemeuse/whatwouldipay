@@ -212,6 +212,7 @@ export const BASELINE_2026: PolicyParams = {
     householdPremiumExemption: 29000,
     employerPayrollRate: 0.075,
     employerPassthrough: 0,
+    employerPremiumToWages: false,
   },
 
   employerInsurance: {
