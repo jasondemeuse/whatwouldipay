@@ -52,7 +52,7 @@ export const DEM: Platform = {
       setTopRate(p, 0.396, { single: 400000, mfj: 450000, mfs: 225000, hoh: 425000 }),
     ),
     note('standardDeduction', 'No change proposed.', 'low', [SRC.greenbook]),
-    pos('ctc', 'Restore the ARPA credit: $3,600 under 6 / $3,000 ages 6–17, fully refundable, paid monthly (modeled as $3,000 fully refundable; child ages not collected).', 'high', [SRC.greenbook], ctcArpa),
+    pos('ctc', 'Restore the ARPA credit: $3,600 under 6 / $3,000 ages 6–17, fully refundable, paid monthly (modeled as $3,000, plus $600 per child under 6).', 'high', [SRC.greenbook], ctcArpa),
     pos('eitc', 'Permanently restore the ARPA childless-worker expansion: max ~$1,749, 15.3% phase rates, eligible from age 19 with no 65 cap.', 'high', [SRC.greenbook], eitcChildlessExpansion),
     note('salt', 'No position in the platform or Greenbook — a genuine intra-party ambiguity.', 'low', [SRC.demPlatform]),
     note('payroll', 'Qualitative only: "ask the wealthiest Americans to pay their fair share" of payroll tax; no numeric wage-base proposal.', 'low', [SRC.demPlatform]),
@@ -88,7 +88,7 @@ export const PROGRESSIVE: Platform = {
     note('incomeRates', 'Much higher top rates on very high incomes (AOC 70% above $10M, 2019; Sanders 52% above $10M, 2020) — historical proposals, not active bills.', 'low', [
       cite('PolitiFact — AOC 70% marginal rate explainer', 'https://www.politifact.com/article/2019/jan/08/explaining-alexandria-ocasio-cortezs-70-percent-ta/', '2019-01-08'),
     ]),
-    pos('ctc', 'American Family Act: $6,360 newborns / $4,320 ages 1–5 / $3,600 ages 6–17, fully refundable, monthly (modeled at $3,600).', 'medium', [SRC.afa], ctcAmericanFamilyAct),
+    pos('ctc', 'American Family Act: $6,360 newborns / $4,320 ages 1–5 / $3,600 ages 6–17, fully refundable, monthly (modeled as $3,600, plus $720 per child under 6).', 'medium', [SRC.afa], ctcAmericanFamilyAct),
     note('salt', 'Oppose SALT cap relief as a giveaway to the wealthy (AOC, Sanders).', 'medium', [
       cite('The Hill — Ocasio-Cortez on SALT', 'https://thehill.com/policy/finance/548542-ocasio-cortez-says-she-disagrees-with-holding-up-infrastructure-over-salt/', '2021-04-13'),
     ]),

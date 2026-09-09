@@ -42,6 +42,9 @@ export function serialize(state: AppState, defaults: Household): string {
     if (v === undefined || v === defaults[key]) continue
     q.set(short, String(v))
   }
+  const ages = (state.household.childAges ?? []).slice(0, state.household.childrenUnder17).join(',')
+  const defaultAges = (defaults.childAges ?? []).slice(0, defaults.childrenUnder17).join(',')
+  if (state.household.childrenUnder17 > 0 && ages !== defaultAges) q.set('ka', ages)
   if (state.selected.length) q.set('p', state.selected.join(','))
   const a = state.assumptions
   if (a.employerPremiumToWages) q.set('epw', '1')
@@ -68,6 +71,13 @@ export function parse(search: string, defaults: Household, validPlatformIds: Set
       const n = Number(raw)
       if (Number.isFinite(n) && n >= 0) (h as unknown as Record<string, number>)[key] = Math.min(n, 1e9)
     }
+  }
+  const ka = q.get('ka')
+  if (ka !== null) {
+    h.childAges = ka
+      .split(',')
+      .map((x) => Number(x))
+      .filter((n) => Number.isInteger(n) && n >= 0 && n <= 17)
   }
   const selected = (q.get('p') ?? '')
     .split(',')

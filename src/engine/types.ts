@@ -29,6 +29,8 @@ export interface Household {
   spouseAge: number
   /** Qualifying children under 17. */
   childrenUnder17: number
+  /** Ages of those children, in any order. Missing entries are assumed to be 8 (school-age). */
+  childAges?: number[]
   /** Other dependents (17+ children, parents). */
   otherDependents: number
   /** Two-letter state code, e.g. "CA". */

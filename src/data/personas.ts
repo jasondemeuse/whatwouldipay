@@ -36,13 +36,13 @@ export const PERSONAS: Persona[] = [
     id: 'median',
     label: 'Median household',
     hint: 'Married, $83,730 (Census 2024 median), one child, employer plan, Ohio',
-    household: { ...base, filingStatus: 'mfj', wages: 52000, spouseWages: 31730, age: 41, spouseAge: 39, childrenUnder17: 1, state: 'OH' },
+    household: { ...base, filingStatus: 'mfj', wages: 52000, spouseWages: 31730, age: 41, spouseAge: 39, childrenUnder17: 1, childAges: [9], state: 'OH' },
   },
   {
     id: 'family4',
     label: 'Family of four',
     hint: 'Married, $105,000 combined, two kids, employer plan, Michigan',
-    household: { ...base, filingStatus: 'mfj', wages: 65000, spouseWages: 40000, age: 38, spouseAge: 36, childrenUnder17: 2, state: 'MI' },
+    household: { ...base, filingStatus: 'mfj', wages: 65000, spouseWages: 40000, age: 38, spouseAge: 36, childrenUnder17: 2, childAges: [4, 10], state: 'MI' },
   },
   {
     id: 'server',
@@ -54,7 +54,7 @@ export const PERSONAS: Persona[] = [
     id: 'singleparent',
     label: 'Single parent on Medicaid',
     hint: 'Head of household, $26,000, one child, Georgia',
-    household: { ...base, filingStatus: 'hoh', wages: 26000, age: 31, childrenUnder17: 1, state: 'GA', healthCoverage: 'medicaid' },
+    household: { ...base, filingStatus: 'hoh', wages: 26000, age: 31, childrenUnder17: 1, childAges: [3], state: 'GA', healthCoverage: 'medicaid' },
   },
   {
     id: 'selfemployed',
@@ -74,7 +74,7 @@ export const PERSONAS: Persona[] = [
     hint: 'Married, $600,000 wages + $100,000 gains, one child, itemizing, California',
     household: {
       ...base, filingStatus: 'mfj', wages: 400000, spouseWages: 200000, longTermGains: 100000, age: 50, spouseAge: 48,
-      childrenUnder17: 1, state: 'CA', saltPaid: 60000, otherItemized: 20000,
+      childrenUnder17: 1, childAges: [15], state: 'CA', saltPaid: 60000, otherItemized: 20000,
     },
   },
 ]

@@ -209,7 +209,6 @@ export function MethodologyPage() {
       <Section id="not-modeled" title="What is not modeled">
         <ul className="max-w-prose list-disc space-y-1 pl-5 text-sm text-ink-2">
           <li>Alternative minimum tax; itemized deductions beyond SALT and a single "other" amount; most state credits and all local income taxes.</li>
-          <li>Child ages, so age-tiered credits use the base amount (planned).</li>
           <li>Wealth taxes, corporate taxes and estate taxes, which rarely reach a household directly; they are listed as notes where a platform proposes them.</li>
           <li>Macroeconomic effects, employer-side payroll incidence (except the exposed toggle), and what replaces programs a platform would abolish.</li>
           <li>Anything about a candidate's character, record or electability. This tool prices published platforms only.</li>

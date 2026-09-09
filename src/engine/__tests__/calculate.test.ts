@@ -92,3 +92,22 @@ describe('ACA 2026', () => {
     expect(r.effectiveCoverage).toBe('coverageGap')
   })
 })
+
+describe('child ages', () => {
+  it('young-child bonus applies only to children under the cutoff', () => {
+    const p = structuredClone(BASELINE_2026)
+    p.ctc.amountPerChild = 3000
+    p.ctc.fullyRefundable = true
+    p.ctc.youngChildBonus = { amount: 600, underAge: 6 }
+    const h = { ...base, filingStatus: 'mfj' as const, wages: 90000, childrenUnder17: 2, childAges: [3, 12] }
+    const r = calculate(h, p, 'b')
+    // Two children at $3,000 plus one under-6 bonus of $600
+    expect(r.nonRefundableCredits + r.refundableCredits).toBeCloseTo(6600, 0)
+  })
+  it('parents of a child under 14 are exempt from Medicaid work requirements', () => {
+    const withYoung = calculate({ ...base, wages: 16000, state: 'OH', healthCoverage: 'medicaid', childrenUnder17: 1, childAges: [10], filingStatus: 'hoh' }, BASELINE_2026, 'b')
+    const withTeen = calculate({ ...base, wages: 16000, state: 'OH', healthCoverage: 'medicaid', childrenUnder17: 1, childAges: [16], filingStatus: 'hoh' }, BASELINE_2026, 'b')
+    expect(withYoung.warnings.some((w) => /work requirement/i.test(w))).toBe(false)
+    expect(withTeen.warnings.some((w) => /work requirement/i.test(w))).toBe(true)
+  })
+})

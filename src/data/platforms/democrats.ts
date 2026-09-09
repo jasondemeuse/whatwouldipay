@@ -110,7 +110,7 @@ export const HARRIS: Platform = {
     pos('incomeRates', 'Top rate 39.6% above $400,000 single / $450,000 joint (2024 plan).', 'high', [
       cite('Tax Foundation — Harris 2024 tax plan', 'https://taxfoundation.org/research/all/federal/kamala-harris-tax-plan-2024/', '2024-11-12'),
     ], (p) => setTopRate(p, 0.396, { single: 400000, mfj: 450000, mfs: 225000, hoh: 425000 })),
-    pos('ctc', '$6,000 for newborns, $3,600 ages 2–5, $3,000 ages 6+, fully refundable (modeled at $3,000; child ages not collected).', 'high', [
+    pos('ctc', '$6,000 for newborns, $3,600 ages 2–5, $3,000 ages 6+, fully refundable (modeled as $3,000, plus $600 per child under 6).', 'high', [
       cite('Tax Foundation — Harris 2024 tax plan', 'https://taxfoundation.org/research/all/federal/kamala-harris-tax-plan-2024/', '2024-11-12'),
     ], ctcArpa),
     pos('eitc', 'Permanently extend the ARPA childless-worker EITC expansion.', 'high', [
@@ -295,7 +295,7 @@ export const BOOKER: Platform = {
   description:
     'Lead sponsor (with Bennet) of the American Family Act child credit; cosponsor of Medicare for All and the Social Security Expansion Act; fought the enhanced ACA credit expiration. Penn Wharton scored his Keep Your Pay Act (exempt the first $75k joint / $37.5k single from income tax).',
   positions: [
-    pos('ctc', 'American Family Act lead sponsor: $6,360 newborns / $4,320 ages 1–5 / $3,600 ages 6–17, monthly, fully refundable (modeled at $3,600).', 'high', [SRC.afa], ctcAmericanFamilyAct),
+    pos('ctc', 'American Family Act lead sponsor: $6,360 newborns / $4,320 ages 1–5 / $3,600 ages 6–17, monthly, fully refundable (modeled as $3,600, plus $720 per child under 6).', 'high', [SRC.afa], ctcAmericanFamilyAct),
     pos('incomeRates', 'Keep Your Pay Act: exempt the first $75,000 (joint) / $37,500 (single) from federal income tax, offset by a higher top rate (Penn Wharton: −$5T net over 10 years).', 'high', [
       cite('Penn Wharton Budget Model — Keep Your Pay Act', 'https://budgetmodel.wharton.upenn.edu/p/2026-03-11-the-keep-your-pay-act-budgetary-and-distributional-effects/', '2026-03-11'),
     ], (p) => {
@@ -331,7 +331,7 @@ export const GALLEGO: Platform = {
   description:
     'Lead sponsor of the Protecting Healthcare And Lowering Costs Act (permanent ACA credits, reverse OBBBA health cuts), cosponsor of the American Family Act, and one of the Senate’s most active anti-tariff voices. Walked back his earlier Medicare for All support.',
   positions: [
-    pos('ctc', 'Cosponsor of the American Family Act: $6,360 / $4,320 / $3,600, monthly, fully refundable (modeled at $3,600).', 'high', [SRC.afa], ctcAmericanFamilyAct),
+    pos('ctc', 'Cosponsor of the American Family Act: $6,360 / $4,320 / $3,600, monthly, fully refundable (modeled as $3,600, plus $720 per child under 6).', 'high', [SRC.afa], ctcAmericanFamilyAct),
     pos('tariffs', 'Repeal: "a tax on Arizona families"; pressed for tariff refunds to families (Feb 2026); campaigned against the trade war in Canada (Sep 2026).', 'high', [
       cite('Gallego — slams tariffs', 'https://www.gallego.senate.gov/news/press-releases/gallego-slams-trumps-tariffs-stands-up-for-arizona-families-and-businesses/', '2025-02-20'),
     ], tariffs(TARIFF.repeal)),

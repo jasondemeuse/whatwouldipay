@@ -35,6 +35,13 @@ function interpolate(points: Array<[number, number]>, x: number): number {
   return points[points.length - 1][1]
 }
 
+/** Child ages, padded to the child count with a school-age default. */
+export function childAges(h: Household): number[] {
+  const ages = (h.childAges ?? []).slice(0, h.childrenUnder17)
+  while (ages.length < h.childrenUnder17) ages.push(8)
+  return ages
+}
+
 export function householdSize(h: Household): number {
   const adults = h.filingStatus === 'mfj' ? 2 : 1
   return adults + h.childrenUnder17 + h.otherDependents
@@ -248,7 +255,9 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
   const earnedIncome = wages + seIncome - halfSeTax
   // Child Tax Credit
   const ctc = p.ctc
-  let ctcGross = h.childrenUnder17 * ctc.amountPerChild + h.otherDependents * ctc.otherDependentCredit
+  const ages = childAges(h)
+  const youngBonus = ctc.youngChildBonus ? ages.filter((a) => a < ctc.youngChildBonus!.underAge).length * ctc.youngChildBonus.amount : 0
+  let ctcGross = h.childrenUnder17 * ctc.amountPerChild + youngBonus + h.otherDependents * ctc.otherDependentCredit
   const ctcPhaseout = Math.max(0, Math.ceil(Math.max(0, agi - ctc.phaseoutStart[fs]) / 1000)) * ctc.phaseoutPer1000
   ctcGross = Math.max(0, ctcGross - ctcPhaseout)
   const ctcNonRefundable = Math.min(ctcGross, taxBeforeCredits)
@@ -261,7 +270,7 @@ export function calculate(input: Household, p: PolicyParams, platformId: string)
       Math.max(0, earnedIncome - ctc.refundEarnedIncomeFloor) * ctc.refundPhaseInRate,
     )
     // ODC portion is never refundable
-    const childPortionRemaining = Math.max(0, Math.min(ctcGross, h.childrenUnder17 * ctc.amountPerChild) - ctcNonRefundable)
+    const childPortionRemaining = Math.max(0, Math.min(ctcGross, h.childrenUnder17 * ctc.amountPerChild + youngBonus) - ctcNonRefundable)
     ctcRefundable = Math.min(childPortionRemaining, actcCap)
   }
 
@@ -343,7 +352,7 @@ interface HealthOutcome {
 export function acaPremiumForHousehold(h: Household, p: PolicyParams): number {
   const ages = [h.age, ...(h.filingStatus === 'mfj' ? [h.spouseAge] : [])]
   // Children priced at the under-21 factor; CMS caps at 3 children
-  const childCount = Math.min(3, h.childrenUnder17 + h.otherDependents)
+  const kids = [...childAges(h), ...Array(h.otherDependents).fill(18)].sort((a, b) => b - a).slice(0, 3) // three oldest under 21 count
   const factorFor = (age: number) => {
     const a = clamp(Math.round(age), 0, 64)
     if (a < 21) return p.aca.ageCurve[0] ?? 0.765
@@ -352,7 +361,7 @@ export function acaPremiumForHousehold(h: Household, p: PolicyParams): number {
   const perUnit = p.aca.benchmarkPremiumAge40 / p.aca.age40Factor
   let total = 0
   for (const a of ages) if (a < p.medicare.eligibilityAge) total += perUnit * factorFor(a)
-  total += childCount * perUnit * factorFor(10)
+  for (const a of kids) total += perUnit * factorFor(a)
   return total
 }
 
@@ -411,13 +420,14 @@ function computeHealthcare(h: Household, p: PolicyParams, agi: number, warnings:
         !p.medicaid.repealExpansion && expansionState && medicaidFplPct <= p.medicaid.expansionThresholdFpl
       if (medicaidEligible) {
         let cost = 0
-        if (p.medicaid.workRequirements && h.age >= 19 && h.age <= 64 && h.childrenUnder17 === 0) {
+        const caretakerExempt = childAges(h).some((a) => a < 14)
+        if (p.medicaid.workRequirements && h.age >= 19 && h.age <= 64 && !caretakerExempt) {
           // Expected-value framing: share of enrollees projected to lose coverage.
           const lossShare = p.medicaid.workRequirementCoverageLossShare
           const uninsuredCost = p.uninsured.avgOutOfPocket
           cost += lossShare * uninsuredCost
           warnings.push(
-            `Medicaid work requirements apply to you (19–64, no dependents). CBO projects roughly ${Math.round(lossShare * 100)}% of affected adults lose coverage; we include that as an expected cost.`,
+            `Medicaid work requirements apply to you (19–64, no child under 14). CBO projects roughly ${Math.round(lossShare * 100)}% of affected adults lose coverage; we include that as an expected cost.`,
           )
           items.push({ label: 'Expected cost of coverage loss (work requirement)', amount: lossShare * uninsuredCost })
         }

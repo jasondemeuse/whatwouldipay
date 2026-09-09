@@ -97,9 +97,41 @@ export function HouseholdForm({ value, onChange }: Props) {
           {joint && <IntField label="Spouse age" value={value.spouseAge} onCommit={(n) => set('spouseAge', n)} />}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <IntField label="Children under 17" value={value.childrenUnder17} onCommit={(n) => set('childrenUnder17', n)} />
+          <IntField
+            label="Children under 17"
+            value={value.childrenUnder17}
+            onCommit={(n) => {
+              const count = Math.min(n, 12)
+              const ages = [...(value.childAges ?? [])].slice(0, count)
+              while (ages.length < count) ages.push(8)
+              onChange({ ...value, childrenUnder17: count, childAges: ages })
+            }}
+          />
           <IntField label="Other dependents" value={value.otherDependents} onCommit={(n) => set('otherDependents', n)} />
         </div>
+        {value.childrenUnder17 > 0 && (
+          <fieldset>
+            <legend className="mb-1 block text-sm font-medium text-ink-2">Children's ages</legend>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: value.childrenUnder17 }, (_, i) => (
+                <input
+                  key={i}
+                  className={`${inputCls} w-14 text-center`}
+                  inputMode="numeric"
+                  aria-label={`Age of child ${i + 1}`}
+                  value={(value.childAges ?? [])[i] ?? 8}
+                  onChange={(e) => {
+                    const ages = [...(value.childAges ?? [])]
+                    while (ages.length < value.childrenUnder17) ages.push(8)
+                    ages[i] = Math.min(17, Math.max(0, Math.floor(Number(e.target.value.replace(/[^0-9]/g, '')) || 0)))
+                    set('childAges', ages)
+                  }}
+                />
+              ))}
+            </div>
+            <span className="mt-1 block text-xs text-ink-3">Used for age-tiered child credits, marketplace pricing, and Medicaid work-requirement exemptions.</span>
+          </fieldset>
+        )}
       </Section>
 
       <Section title="Income (annual)">

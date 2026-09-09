@@ -255,8 +255,7 @@ function Methodology() {
           your wages, matching how we treat employer premiums today.
         </li>
         <li>
-          <strong>Not modeled:</strong> AMT, itemized deduction detail beyond SALT, most state credits, local income taxes, child ages (age-tiered
-          credits use the base amount), employer-side payroll incidence, macroeconomic effects, wealth taxes, corporate and estate taxes, and
+          <strong>Not modeled:</strong> AMT, itemized deduction detail beyond SALT, most state credits, local income taxes, employer-side payroll incidence, macroeconomic effects, wealth taxes, corporate and estate taxes, and
           what replaces the programs a platform would abolish (see the Libertarian caveat).
         </li>
         <li>
