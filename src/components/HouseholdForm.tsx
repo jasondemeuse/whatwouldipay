@@ -1,28 +1,13 @@
-import { useState } from 'react'
 import type { FilingStatus, HealthCoverage, Household } from '../engine/types'
 import { STATE_LIST } from '../data/states'
 import { PERSONAS } from '../data/personas'
-import { parseMoney } from '../lib/labels'
+import { COVERAGE_OPTIONS as COVERAGE, FILING_OPTIONS as FILING } from '../lib/labels'
+import { Field, IntField, MoneyField, Section, inputCls } from './fields'
 
 interface Props {
   value: Household
   onChange: (h: Household) => void
 }
-
-const FILING: Array<{ v: FilingStatus; label: string }> = [
-  { v: 'single', label: 'Single' },
-  { v: 'mfj', label: 'Married filing jointly' },
-  { v: 'mfs', label: 'Married filing separately' },
-  { v: 'hoh', label: 'Head of household' },
-]
-
-const COVERAGE: Array<{ v: HealthCoverage; label: string }> = [
-  { v: 'employer', label: 'Employer plan' },
-  { v: 'marketplace', label: 'ACA marketplace' },
-  { v: 'medicaid', label: 'Medicaid' },
-  { v: 'medicare', label: 'Medicare' },
-  { v: 'uninsured', label: 'Uninsured' },
-]
 
 /** Field-by-field equality that does not depend on key order (JSON.stringify would). */
 function sameHousehold(a: Household, b: Household): boolean {
@@ -189,114 +174,5 @@ export function HouseholdForm({ value, onChange }: Props) {
         </div>
       </details>
     </div>
-  )
-}
-
-const inputCls =
-  'w-full rounded-md border border-rule bg-card px-3 py-1.5 text-sm text-ink shadow-none transition-colors hover:border-ink-4'
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <fieldset className="space-y-3">
-      <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">{title}</legend>
-      {children}
-    </fieldset>
-  )
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-ink-2">{label}</span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-ink-3">{hint}</span>}
-    </label>
-  )
-}
-
-function IntField({ label, value, onCommit, max = 12 }: { label: string; value: number; onCommit: (n: number) => void; max?: number }) {
-  const [draft, setDraft] = useState<string | null>(null)
-  const clamp = (raw: string) => Math.min(max, Math.max(0, Math.floor(Number(raw.replace(/[^0-9]/g, '')) || 0)))
-  return (
-    <Field label={label}>
-      <input
-        className={`${inputCls} max-w-24`}
-        inputMode="numeric"
-        value={draft ?? String(value)}
-        onChange={(e) => {
-          setDraft(e.target.value)
-          if (e.target.value.trim() !== '') onCommit(clamp(e.target.value))
-        }}
-        onBlur={(e) => {
-          setDraft(null)
-          onCommit(clamp(e.target.value))
-        }}
-      />
-    </Field>
-  )
-}
-
-/**
- * Money input per GOV.UK guidance: text input, `$` prefix hidden from AT, inputmode numeric, width sized to
- * content. Accepts "65k" style shorthand and shows how it was read.
- */
-function MoneyField({
-  label,
-  hint,
-  value,
-  onCommit,
-  placeholder,
-  allowBlank = false,
-  width = 'md',
-}: {
-  label: string
-  hint?: string
-  value: number | undefined
-  onCommit: (n: number | undefined) => void
-  placeholder?: string
-  allowBlank?: boolean
-  width?: 'sm' | 'md'
-}) {
-  const [draft, setDraft] = useState<string | null>(null)
-  const [note, setNote] = useState<string | null>(null)
-  const display = draft ?? (value === undefined ? '' : value.toLocaleString('en-US'))
-
-  const commit = (raw: string) => {
-    setDraft(null)
-    if (raw.trim() === '') {
-      setNote(null)
-      onCommit(allowBlank ? undefined : 0)
-      return
-    }
-    const [n, reinterpreted] = parseMoney(raw)
-    onCommit(n)
-    setNote(reinterpreted ? `Read as $${n.toLocaleString('en-US')}` : null)
-  }
-
-  return (
-    <Field label={label} hint={note ?? hint}>
-      <div className={`relative ${width === 'sm' ? 'max-w-36' : 'max-w-48'}`}>
-        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-ink-4">
-          $
-        </span>
-        <input
-          className={`${inputCls} money pl-7`}
-          inputMode="numeric"
-          autoComplete="off"
-          value={display}
-          placeholder={placeholder}
-          onChange={(e) => {
-            setDraft(e.target.value)
-            // Commit live for plain numbers so results update as you type; shorthand commits on blur.
-            const [n] = parseMoney(e.target.value)
-            if (/^[\d,$\s.]*$/.test(e.target.value)) onCommit(e.target.value.trim() === '' && allowBlank ? undefined : n)
-          }}
-          onBlur={(e) => commit(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-          }}
-        />
-      </div>
-    </Field>
   )
 }

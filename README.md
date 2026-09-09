@@ -6,6 +6,7 @@ A prototype web app that lets you enter your household details and compare how d
 - **Engine:** `src/engine/`, federal income tax, payroll tax, CTC/EITC, OBBBA deductions, ACA premium tax credits, Medicaid eligibility, Medicare premiums, rough state income tax, tariff pass-through.
 - **Data:** `src/data/baseline2026.ts` (current law, cited), `src/data/platforms/` (one file per politician / party, every position cited with a confidence level), `src/data/states.ts`.
 - **Research:** `docs/research/`, prior-art survey, data-source survey, and the raw position reports the dataset was built from.
+- **Two views:** the guided view (default) asks six questions and ranks the answer; the full comparison (`?v=full`, or the header toggle) has every line item, the policy lever matrix, spending priorities and adjustable assumptions. Both read and write the same state, and every view is a permalink.
 
 ```sh
 npm install

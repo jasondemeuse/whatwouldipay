@@ -99,8 +99,10 @@ export function parse(search: string, defaults: Household, validPlatformIds: Set
   return { household: h, selected, assumptions }
 }
 
-export function permalink(state: AppState, defaults: Household, hash = location.hash): string {
-  const qs = serialize(state, defaults)
+export function permalink(state: AppState, defaults: Household, hash = location.hash, extra: Record<string, string> = {}): string {
+  const q = new URLSearchParams(serialize(state, defaults))
+  for (const [k, v] of Object.entries(extra)) q.set(k, v)
+  const qs = q.toString()
   const base = `${location.origin}${location.pathname}`
   return `${base}${qs ? `?${qs}` : ''}${hash}`
 }

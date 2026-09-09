@@ -3,6 +3,11 @@ export const CHANGELOG: Array<{ date: string; summary: string }> = [
   {
     date: '2026-09-09',
     summary:
+      'Guided view. The default landing is now six questions and a ranked answer, with every row opening the "Why?" bridge; the full comparison (line items, lever matrix, spending, assumptions) is one toggle away and remembered. Fixed the phone layout, where the comparison tables forced the whole page wider than the screen.',
+  },
+  {
+    date: '2026-09-09',
+    summary:
       'Sourcing pass. Restored the governors’ tariff positions with specific citations (Beshear and Pritzker: repeal; Moore and Whitmer: targeted, on their own words) and Beshear’s ACA position; Shapiro and Whitmer re-cited to the PA Department of Revenue and Michigan 2023 PA 4 instead of Wikipedia, with Shapiro’s unverified corporate-tax acceleration claim dropped. Added Mark Kelly (five cited positions). Recorded Ossoff’s denial alongside his market standing, and stated the inclusion criterion on the methodology page. Social Security wage base confirmed against IRS Tax Topic 751.',
   },
   {

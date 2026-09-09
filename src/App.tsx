@@ -5,6 +5,8 @@ import { ResultsView } from './components/ResultsView'
 import { PositionsPanel } from './components/PositionsPanel'
 import { WhyPanel } from './components/WhyPanel'
 import { Dialog } from './components/Dialog'
+import { GuidedView } from './components/GuidedView'
+import { Segmented } from './components/Segmented'
 import { LeverMatrix } from './components/LeverMatrix'
 import { AssumptionsPanel } from './components/AssumptionsPanel'
 import { Verdict } from './components/Verdict'
@@ -29,6 +31,21 @@ const DEFAULT_HOUSEHOLD: Household = PERSONAS[0].household
 const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 
 const STORAGE_KEY = 'wwip:v1'
+const VIEW_KEY = 'wwip:view'
+
+type View = 'guided' | 'full'
+/** Guided by default; a shared link or a remembered choice can open the full comparison. */
+function loadView(): View {
+  const v = new URLSearchParams(window.location.search).get('v')
+  if (v === 'full' || v === 'guided') return v
+  try {
+    const s = localStorage.getItem(VIEW_KEY)
+    if (s === 'full' || s === 'guided') return s
+  } catch {
+    /* ignore */
+  }
+  return 'guided'
+}
 
 const PLATFORM_IDS = new Set(PLATFORMS.map((p) => p.id))
 // Dataset facts shown in the hero; module constants because the dataset never changes at runtime.
@@ -73,10 +90,14 @@ export default function App() {
   const [positionsFor, setPositionsFor] = useState<string | null>(null)
   const [explainFor, setExplainFor] = useState<string | null>(null)
   const [guessMode, setGuessMode] = useState(false)
+  const [view, setView] = useState<View>(loadView)
   const [revealed, setRevealed] = useState<Record<string, boolean>>({})
   const closePositions = useCallback(() => setPositionsFor(null), [])
 
-  const url = useMemo(() => permalink({ household, selected, assumptions }, URL_DEFAULT_HOUSEHOLD, route), [household, selected, assumptions, route])
+  const url = useMemo(
+    () => permalink({ household, selected, assumptions }, URL_DEFAULT_HOUSEHOLD, route, view === 'full' ? { v: 'full' } : {}),
+    [household, selected, assumptions, route, view],
+  )
 
   useEffect(() => {
     // Persist and keep the address bar in sync so the current view is always a permalink (debounced; no history spam).
@@ -90,6 +111,17 @@ export default function App() {
     }, 300)
     return () => clearTimeout(t)
   }, [household, selected, assumptions, url])
+  useEffect(() => {
+    try {
+      localStorage.setItem(VIEW_KEY, view)
+    } catch {
+      /* ignore */
+    }
+  }, [view])
+  const openFull = useCallback(() => {
+    setView('full')
+    window.scrollTo({ top: 0 })
+  }, [])
 
   const baseline = useMemo(
     () => calculate(household, applyAssumptions(cloneParams(BASELINE_2026), assumptions), 'baseline'),
@@ -153,6 +185,17 @@ export default function App() {
             <a href={SITE.repo} className="underline-offset-2 hover:text-ink hover:underline" target="_blank" rel="noreferrer">
               Source
             </a>
+            {!isMethodology && (
+              <Segmented<View>
+                label="View"
+                value={view}
+                options={[
+                  { v: 'guided', label: 'Guided', title: 'Guided: six questions and a ranked answer' },
+                  { v: 'full', label: 'Full', title: 'Full comparison: every line item, lever and source' },
+                ]}
+                onChange={setView}
+              />
+            )}
             <ThemeToggle />
           </nav>
         </div>
@@ -160,7 +203,7 @@ export default function App() {
 
       {!isMethodology && (
         <div className="border-b border-rule-2 bg-paper">
-          <div className="mx-auto max-w-7xl px-4 pb-6 pt-8">
+          <div className={`mx-auto px-4 pb-6 pt-8 ${view === 'guided' ? 'max-w-2xl' : 'max-w-7xl'}`}>
             <h1 className="max-w-3xl font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
               What would each candidate's plan cost you?
             </h1>
@@ -186,14 +229,28 @@ export default function App() {
 
       {isMethodology ? (
         <MethodologyPage />
+      ) : view === 'guided' ? (
+        <GuidedView
+          household={household}
+          onHousehold={setHousehold}
+          selected={selected}
+          onSelected={setSelected}
+          baseline={baseline}
+          results={results}
+          all={PLATFORMS}
+          url={url}
+          onExplain={setExplainFor}
+          onShowPositions={setPositionsFor}
+          onFull={openFull}
+        />
       ) : (
       <main id="main" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 pb-24 lg:grid-cols-[340px_1fr] lg:pb-6">
-        <aside className="card rounded-card border border-rule bg-card p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
+        <aside className="card min-w-0 rounded-card border border-rule bg-card p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
           <h2 className="sr-only">Your household</h2>
           <HouseholdForm value={household} onChange={setHousehold} />
         </aside>
 
-        <section className="space-y-6">
+        <section className="min-w-0 space-y-6">
           <div className="card rounded-card border border-rule bg-card p-4">
             <h2 className="mb-3 font-serif text-lg font-semibold text-ink">Who do you want to compare?</h2>
             <PlatformPicker platforms={PLATFORMS} selected={selected} onChange={setSelected} />

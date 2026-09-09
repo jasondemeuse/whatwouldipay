@@ -1,3 +1,4 @@
+import type { FilingStatus, HealthCoverage } from '../engine/types'
 import type { Party, PolicyArea } from '../engine/types'
 
 export const AREA_LABEL: Record<PolicyArea, string> = {
@@ -70,3 +71,20 @@ export const SITE = {
   modelUpdated: '2026-09-09',
   modelUpdatedLabel: 'Sept 9, 2026',
 }
+
+/** Option lists for the household forms. */
+export const FILING_OPTIONS: Array<{ v: FilingStatus; label: string }> = [
+  { v: 'single', label: 'Single' },
+  { v: 'mfj', label: 'Married filing jointly' },
+  { v: 'mfs', label: 'Married filing separately' },
+  { v: 'hoh', label: 'Head of household' },
+]
+
+export const COVERAGE_OPTIONS: Array<{ v: HealthCoverage; label: string }> = [
+  { v: 'employer', label: 'Employer plan' },
+  { v: 'marketplace', label: 'ACA marketplace' },
+  { v: 'medicaid', label: 'Medicaid' },
+  { v: 'medicare', label: 'Medicare' },
+  { v: 'uninsured', label: 'Uninsured' },
+]
+

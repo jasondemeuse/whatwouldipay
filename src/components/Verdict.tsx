@@ -35,10 +35,12 @@ interface Props {
   all: Platform[]
   /** Guess-first mode with unrevealed cards: don't spoil the answer. */
   hidden?: boolean
+  /** In the guided view the spending section is not on the page; this opens the full comparison instead. */
+  onOpenFull?: () => void
 }
 
 /** The answer as a sentence with the numbers inside it. */
-export function Verdict({ baseline, results, all, hidden = false }: Props) {
+export function Verdict({ baseline, results, all, hidden = false, onOpenFull }: Props) {
   if (hidden) {
     return (
       <p className="font-serif text-lg text-ink-2">
@@ -102,10 +104,19 @@ export function Verdict({ baseline, results, all, hidden = false }: Props) {
     {clause && (
       <p className="mt-2 font-serif text-base leading-snug text-ink-3">
         Beyond your paycheck, {best.platform.shortName}'s platform would {clause}. Details and who scored each figure are in the{' '}
-        <a href="#beyond-h" className="underline hover:text-ink">
-          spending section
-        </a>{' '}
-        below.
+        {onOpenFull ? (
+          <button type="button" onClick={onOpenFull} className="underline hover:text-ink">
+            full comparison
+          </button>
+        ) : (
+          <>
+            <a href="#beyond-h" className="underline hover:text-ink">
+              spending section
+            </a>{' '}
+            below
+          </>
+        )}
+        .
       </p>
     )}
     </>
