@@ -13,10 +13,9 @@ export function Delta({ v, muted = false, animate = false }: { v: number; muted?
   const label = zero ? 'no change' : gain ? 'gain' : 'loss'
   return (
     <span className={`money inline-flex items-baseline gap-1 whitespace-nowrap ${muted ? 'text-ink-2' : ''}`}>
-      <span aria-hidden="true" className="text-[0.7em]" style={{ color }}>
+      <span role="img" aria-label={label} className="text-[0.7em]" style={{ color }}>
         {glyph}
       </span>
-      <span className="sr-only">{label} </span>
       {animate ? <MoneyDelta value={zero ? 0 : v} /> : zero ? usd(0) : usd(v, { sign: true })}
     </span>
   )

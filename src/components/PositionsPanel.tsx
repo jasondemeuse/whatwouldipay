@@ -26,6 +26,25 @@ export const AREA_LABEL: Record<PolicyArea, string> = {
   other: 'Other',
 }
 
+/** Mid-sentence phrasing for each area ("mostly from …"), preserving proper nouns. */
+export const AREA_PHRASE: Record<PolicyArea, string> = {
+  incomeRates: 'income tax rates',
+  standardDeduction: 'the standard deduction',
+  ctc: 'the child tax credit',
+  eitc: 'the earned income credit',
+  salt: 'the SALT cap',
+  payroll: 'payroll taxes',
+  tipsOvertime: 'the tips and overtime deductions',
+  capitalGains: 'investment taxes',
+  tariffs: 'tariffs',
+  socialSecurityBenefits: 'taxes on Social Security benefits',
+  aca: 'ACA subsidies',
+  medicaid: 'Medicaid',
+  medicare: 'Medicare',
+  singlePayer: 'Medicare for All',
+  other: 'other changes',
+}
+
 const CONF: Record<PolicyPosition['confidence'], { label: string; cls: string; title: string }> = {
   high: { label: 'High', cls: 'bg-ink text-card', title: 'Explicit numeric proposal, sponsored bill, or signed law' },
   medium: { label: 'Medium', cls: 'bg-ink/70 text-card', title: 'Clear stated direction, but without specific numbers' },

@@ -135,3 +135,43 @@ body {
     break-inside: avoid;
   }
 }
+
+/* ---------- Dark theme ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"],
+:root:not([data-theme="light"]):where(.system-dark) {
+  --color-paper: oklch(0.17 0.008 260);
+  --color-paper-2: oklch(0.21 0.008 260);
+  --color-card: oklch(0.2 0.008 260);
+  --color-ink: oklch(0.95 0.005 85);
+  --color-ink-2: oklch(0.8 0.008 85);
+  --color-ink-3: oklch(0.65 0.008 85);
+  --color-ink-4: oklch(0.45 0.008 260);
+  --color-rule: oklch(0.32 0.01 260);
+  --color-rule-2: oklch(0.27 0.01 260);
+  --color-accent: oklch(0.78 0.09 195);
+  --color-accent-2: oklch(0.3 0.04 195);
+  --color-gain: oklch(0.74 0.12 165);
+  --color-gain-2: oklch(0.28 0.04 165);
+  --color-loss: oklch(0.74 0.14 45);
+  --color-loss-2: oklch(0.3 0.04 45);
+  --color-caution: oklch(0.78 0.12 80);
+  --color-caution-2: oklch(0.26 0.04 85);
+  --color-party-d: oklch(0.7 0.11 255);
+  --color-party-r: oklch(0.7 0.13 25);
+  --color-party-i: oklch(0.7 0.09 160);
+  --color-party-l: oklch(0.8 0.13 80);
+  --color-party-g: oklch(0.7 0.1 145);
+}
+/* Images and avatar tints read better slightly dimmed on dark surfaces */
+:root[data-theme="dark"] img,
+:root:not([data-theme="light"]):where(.system-dark) img {
+  filter: brightness(0.92);
+}

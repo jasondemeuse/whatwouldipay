@@ -1,7 +1,7 @@
 import type { Attribution } from '../engine/attribution'
 import type { HouseholdResult, Platform } from '../engine/types'
 import { usd } from '../lib/format'
-import { AREA_LABEL } from './PositionsPanel'
+import { AREA_PHRASE } from './PositionsPanel'
 import { Delta } from './Delta'
 
 interface Props {
@@ -40,11 +40,12 @@ export function Verdict({ baseline, results }: Props) {
     <p className="font-serif text-lg leading-snug text-ink-2">
       Compared with current law (<span className="money font-semibold text-ink">{usd(baseline.netIncome)}</span> a year), your household would keep
       the most under <span className="font-semibold text-ink">{best.platform.name}</span> (<Delta v={bestDelta} animate />
-      {topLever && bestDelta > 0 ? <>, mostly from {AREA_LABEL[topLever.position.area].toLowerCase()}</> : null})
+      {topLever && bestDelta > 0 ? <>, mostly from {AREA_PHRASE[topLever.position.area]}</> : null})
       {results.length > 1 && (
         <>
           {' '}
-          and the least under <span className="font-semibold text-ink">{worst.platform.name}</span> (<Delta v={worstDelta} animate />)
+          and {worstDelta > 0 ? 'the smallest gain' : worstDelta < 0 ? 'the biggest loss' : 'no change'} under{' '}
+          <span className="font-semibold text-ink">{worst.platform.name}</span> (<Delta v={worstDelta} animate />)
         </>
       )}
       .

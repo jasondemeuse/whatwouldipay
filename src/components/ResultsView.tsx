@@ -29,6 +29,15 @@ const COVERAGE_LABEL: Record<string, string> = {
 export function ResultsView({ baseline, results, onShowPositions, onExplain, explaining, whyPanel }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [sort, setSort] = useState<SortMode>('impact')
+  const [guessMode, setGuessMode] = useState(false)
+  const [guesses, setGuesses] = useState<Record<string, number>>({})
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({})
+  const hidden = (id: string) => guessMode && !revealed[id]
+  const revealAll = () => setRevealed(Object.fromEntries(results.map((r) => [r.platform.id, true])))
+  const resetGuesses = () => {
+    setRevealed({})
+    setGuesses({})
+  }
   const sorted = [...results].sort((a, b) => {
     if (sort === 'impact') return b.result.netIncome - a.result.netIncome
     if (sort === 'name') return a.platform.name.localeCompare(b.platform.name)
@@ -39,9 +48,29 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
 
   return (
     <div className="space-y-6">
-      {results.length > 1 && (
-        <div className="no-print flex items-center justify-end gap-2 text-xs text-ink-3">
-          <span id="sort-label">Order</span>
+      {results.length > 0 && (
+        <div className="no-print flex flex-wrap items-center justify-between gap-2 text-xs text-ink-3">
+          <label className="inline-flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="h-3.5 w-3.5 accent-[var(--color-accent)]"
+              checked={guessMode}
+              onChange={(e) => {
+                setGuessMode(e.target.checked)
+                resetGuesses()
+              }}
+            />
+            <span>
+              Guess first <span className="text-ink-4">· predict each effect before you see it</span>
+            </span>
+          </label>
+          {guessMode && Object.keys(revealed).length < results.length && (
+            <button type="button" onClick={revealAll} className="underline hover:text-ink">
+              Reveal all
+            </button>
+          )}
+          {results.length > 1 && (<>
+          <span id="sort-label" className="ml-auto">Order</span>
           <div role="radiogroup" aria-labelledby="sort-label" className="inline-flex rounded-md border border-rule bg-card p-0.5">
             {(
               [
@@ -62,6 +91,7 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
               </button>
             ))}
           </div>
+          </>)}
         </div>
       )}
       {/* Headline cards */}
@@ -87,19 +117,33 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
                   <div className="line-clamp-2 text-xs leading-snug text-ink-3">{platform ? platform.role : 'Baseline after the 2025 tax law'}</div>
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="text-xs uppercase tracking-wide text-ink-3">Money left after taxes & healthcare</div>
-                <Money value={result.netIncome} className="block text-2xl font-semibold tracking-tight text-ink" />
-                {!isBase && (
-                  <div className="mt-1 text-sm font-semibold text-ink">
-                    <Delta v={delta} animate /> <span className="font-normal text-ink-2">vs. current law</span>
-                    <span className="money ml-1 font-normal text-ink-3">
-                      ({delta >= 0 ? '+' : '−'}{usd(Math.abs(delta) / 12)}/mo)
-                    </span>
-                  </div>
-                )}
-              </div>
-              {!isBase && (
+              {platform && hidden(platform.id) ? (
+                <GuessControl
+                  value={guesses[platform.id] ?? 0}
+                  onChange={(v) => setGuesses((g) => ({ ...g, [platform.id]: v }))}
+                  onReveal={() => setRevealed((r) => ({ ...r, [platform.id]: true }))}
+                />
+              ) : (
+                <div className="mt-3">
+                  <div className="text-xs uppercase tracking-wide text-ink-3">Money left after taxes & healthcare</div>
+                  <Money value={result.netIncome} className="block text-2xl font-semibold tracking-tight text-ink" />
+                  {!isBase && (
+                    <div className="mt-1 text-sm font-semibold text-ink">
+                      <Delta v={delta} animate /> <span className="font-normal text-ink-2">vs. current law</span>
+                      <span className="money ml-1 font-normal text-ink-3">
+                        ({delta >= 0 ? '+' : '−'}{usd(Math.abs(delta) / 12)}/mo)
+                      </span>
+                    </div>
+                  )}
+                  {platform && guessMode && revealed[platform.id] && guesses[platform.id] !== undefined && (
+                    <div className="mt-1 text-xs text-ink-3">
+                      You guessed <span className="money text-ink-2">{usd(guesses[platform.id], { sign: true })}</span>; off by{' '}
+                      <span className="money text-ink-2">{usd(Math.abs(delta - guesses[platform.id]))}</span>.
+                    </div>
+                  )}
+                </div>
+              )}
+              {!isBase && !hidden(platform!.id) && (
                 <div className="mt-3 h-2 w-full overflow-hidden rounded bg-paper-2">
                   <div className="relative h-full w-full">
                     <div className="absolute left-1/2 top-0 h-full w-px bg-rule" />
@@ -275,6 +319,33 @@ function Row({
         )
       })}
     </tr>
+  )
+}
+
+function GuessControl({ value, onChange, onReveal }: { value: number; onChange: (v: number) => void; onReveal: () => void }) {
+  return (
+    <div className="mt-3 rounded-md border border-dashed border-ink-4 bg-paper-2/60 p-3">
+      <div className="text-xs uppercase tracking-wide text-ink-3">Your guess: change vs. current law</div>
+      <div className="money mt-1 text-xl font-semibold text-ink">{Math.abs(value) < 1 ? '$0' : usd(value, { sign: true })}</div>
+      <input
+        type="range"
+        min={-10000}
+        max={10000}
+        step={250}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label="Your guess for the change versus current law"
+        className="mt-2 w-full accent-[var(--color-accent)]"
+      />
+      <div className="mt-1 flex items-center justify-between text-[10px] text-ink-4">
+        <span>−$10,000</span>
+        <span>$0</span>
+        <span>+$10,000</span>
+      </div>
+      <button type="button" onClick={onReveal} className="mt-2 rounded-md bg-ink px-3 py-1 text-xs font-medium text-card hover:opacity-90">
+        Reveal
+      </button>
+    </div>
   )
 }
 
