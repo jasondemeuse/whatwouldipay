@@ -6,11 +6,15 @@ import { Avatar } from './Avatar'
 import { Money } from './Money'
 import { Segmented } from './Segmented'
 import { fmtBillions, resolvedSpending, scorerLabel } from '../engine/spending'
+import { STATE_TAX } from '../data/states'
 
 type SortMode = 'impact' | 'selection' | 'name'
 
 interface Props {
   baseline: HouseholdResult
+  /** Two-letter state, for the state-tax caveat. */
+  state: string
+  filingStatus: string
   results: Array<{ platform: Platform; result: HouseholdResult; sameAs?: string }>
   all: Platform[]
   onShowPositions: (platformId: string) => void
@@ -37,6 +41,8 @@ const COVERAGE_LABEL: Record<string, string> = {
 
 export function ResultsView({
   baseline,
+  state,
+  filingStatus,
   results,
   all,
   onShowPositions,
@@ -255,7 +261,14 @@ export function ResultsView({
             <Row label="Gross income" rows={rows} get={(r) => r.grossIncome} />
             <Row label="Federal income tax (after credits)" rows={rows} get={(r) => r.federalIncomeTax} cost baselineRow={baseline} />
             <Row label="Payroll taxes (Social Security + Medicare)" rows={rows} get={(r) => r.payrollTax} cost baselineRow={baseline} />
-            <Row label="State income tax (approx.)" rows={rows} get={(r) => r.stateIncomeTax} cost baselineRow={baseline} />
+            <Row
+              label="State income tax (approx.)"
+              sub={stateCaveat(state, filingStatus)}
+              rows={rows}
+              get={(r) => r.stateIncomeTax}
+              cost
+              baselineRow={baseline}
+            />
             <Row label="Healthcare (premiums + typical out-of-pocket)" rows={rows} get={(r) => r.healthcareCost} cost baselineRow={baseline} />
             <Row label="Tariff cost passed to consumers (est.)" rows={rows} get={(r) => r.tariffCost} cost baselineRow={baseline} />
             <tr className="bg-paper-2 font-semibold">
@@ -319,14 +332,27 @@ export function ResultsView({
   )
 }
 
+/** The state table's own caveat plus the filing-status simplification, shown under the state-tax row. */
+function stateCaveat(state: string, filingStatus: string): string | undefined {
+  const rule = STATE_TAX[state]
+  if (!rule) return undefined
+  const parts: string[] = []
+  if (rule.type === 'none') return rule.notes
+  if (filingStatus === 'hoh' || filingStatus === 'mfs') parts.push('Single-filer brackets and deduction are used for head-of-household and separate filers.')
+  if (rule.notes) parts.push(rule.notes)
+  return parts.join(' ') || undefined
+}
+
 function Row({
   label,
+  sub,
   rows,
   get,
   cost,
   baselineRow,
 }: {
   label: string
+  sub?: string
   rows: Array<{ platform: Platform | null; result: HouseholdResult }>
   get: (r: HouseholdResult) => number
   cost?: boolean
@@ -337,6 +363,7 @@ function Row({
     <tr>
       <td className="px-4 py-2 text-ink-2">
         {label}
+        {sub && <span className="mt-0.5 block max-w-xs text-xs text-ink-3">{sub}</span>}
         {identical && (
           <span className="mt-0.5 block text-xs text-ink-3">
             Same under every selected platform. Open <em>Why?</em> on a card to see which thresholds you don't reach.

@@ -12,7 +12,7 @@ export const GOP: Platform = {
   shortName: 'GOP baseline',
   kind: 'party',
   party: 'R',
-  role: 'Party baseline — 2024 platform + the 2025 tax law as enacted',
+  role: 'Party baseline: 2024 platform + the 2025 tax law as enacted',
   description:
     'Current federal law made permanent: the OBBBA/TCJA rate structure, $2,200 child credit, $40,400 SALT cap, tips/overtime/senior deductions (through 2028), the existing tariff regime, Medicaid work requirements from 2027, and no extension of the enhanced ACA subsidies.',
   positions: [
@@ -26,10 +26,10 @@ export const GOP: Platform = {
     note('capitalGains', 'No change to capital gains rates; no wealth tax.', 'medium', [SRC.gopPlatform]),
     pos('tariffs', 'Keep the current tariff regime (Section 232/301 tariffs after the Supreme Court struck the IEEPA tariffs); "support baseline tariffs on foreign-made goods."', 'high', [SRC.gopPlatform, SRC.tfTariffs], tariffs(TARIFF.keep)),
     note('socialSecurityBenefits', 'Describes the $6,000 senior deduction as "no tax on Social Security"; benefit taxation itself was not repealed.', 'high', [
-      cite('White House — "No tax on Social Security"', 'https://www.whitehouse.gov/releases/2025/07/no-tax-on-social-security-is-a-reality-in-the-one-big-beautiful-bill/', '2025-07-04'),
+      cite('White House: "No tax on Social Security"', 'https://www.whitehouse.gov/releases/2025/07/no-tax-on-social-security-is-a-reality-in-the-one-big-beautiful-bill/', '2025-07-04'),
     ]),
     note('aca', 'Let the enhanced premium tax credits expire (they did, 2025-12-31); the 400% FPL cliff is back.', 'high', [
-      cite('KFF — ACA marketplace enrollment changes in 2026', 'https://www.kff.org/affordable-care-act/how-has-aca-marketplace-enrollment-changed-across-states-in-2026/', '2026-07-28'),
+      cite('KFF: ACA marketplace enrollment changes in 2026', 'https://www.kff.org/affordable-care-act/how-has-aca-marketplace-enrollment-changed-across-states-in-2026/', '2026-07-28'),
     ]),
     note('medicaid', 'Keep OBBBA: 80-hour/month work requirements for expansion adults from 2027, six-month redeterminations, provider-tax phase-down.', 'high', [SRC.obbbaKff]),
     note('medicare', 'No eligibility-age change; IRA drug negotiation kept; eligibility narrowed to citizens and lawful permanent residents.', 'high', [SRC.obbbaKff]),
@@ -45,7 +45,7 @@ export const DEM: Platform = {
   shortName: 'Dem baseline',
   kind: 'party',
   party: 'D',
-  role: 'Party baseline — 2024 platform + FY2025 Treasury Greenbook',
+  role: 'Party baseline: 2024 platform + FY2025 Treasury Greenbook',
   description:
     'Raise the top rate to 39.6% above $400k/$450k with no increases under $400k; restore the ARPA child credit ($3,000, fully refundable, monthly) and childless EITC; tax gains as ordinary income above $1M; make the enhanced ACA subsidies permanent; close the Medicaid coverage gap and reverse the work requirements; keep targeted China tariffs but oppose broad ones.',
   positions: [
@@ -55,7 +55,7 @@ export const DEM: Platform = {
     note('standardDeduction', 'No change proposed.', 'low', [SRC.greenbook]),
     pos('ctc', 'Restore the ARPA credit: $3,600 under 6 / $3,000 ages 6–17, fully refundable, paid monthly (modeled as $3,000, plus $600 per child under 6).', 'high', [SRC.greenbook], ctcArpa),
     pos('eitc', 'Permanently restore the ARPA childless-worker expansion: max ~$1,749, 15.3% phase rates, eligible from age 19 with no 65 cap.', 'high', [SRC.greenbook], eitcChildlessExpansion),
-    note('salt', 'No position in the platform or Greenbook — a genuine intra-party ambiguity.', 'low', [SRC.demPlatform]),
+    note('salt', 'No position in the platform or Greenbook. The party is divided on it.', 'low', [SRC.demPlatform]),
     note('payroll', 'Qualitative only: "ask the wealthiest Americans to pay their fair share" of payroll tax; no numeric wage-base proposal.', 'low', [SRC.demPlatform]),
     note('tipsOvertime', 'Not addressed in the 2024 platform or Greenbook (both predate the proposals).', 'low', [SRC.demPlatform]),
     pos('capitalGains', 'Tax gains as ordinary income above $1M; end stepped-up basis; 25% billionaire minimum tax above $100M net worth; NIIT 3.8% → 5% on income above $400k.', 'high', [SRC.greenbook], (p) => {
@@ -82,7 +82,7 @@ export const PROGRESSIVE: Platform = {
   shortName: 'Progressive',
   kind: 'party',
   party: 'D',
-  role: 'Lane baseline — Sanders, AOC, Congressional Progressive Caucus, DSA',
+  role: 'Lane baseline: Sanders, AOC, Congressional Progressive Caucus, DSA',
   description:
     'Medicare for All replacing premiums and cost-sharing with an income-based contribution; the American Family Act child credit ($3,600+, fully refundable, monthly); payroll tax on earnings above $250,000; a 5% annual wealth tax on billionaires; 35% corporate rate; opposition to SALT cap relief; targeted rather than broad tariffs.',
   positions: [
@@ -96,12 +96,12 @@ export const PROGRESSIVE: Platform = {
     ),
     pos('ctc', 'American Family Act: $6,360 newborns / $4,320 ages 1–5 / $3,600 ages 6–17, fully refundable, monthly (modeled as $3,600, plus $720 per child under 6).', 'medium', [SRC.afa], ctcAmericanFamilyAct),
     note('salt', 'Oppose SALT cap relief as a giveaway to the wealthy (AOC, Sanders).', 'medium', [
-      cite('The Hill — Ocasio-Cortez on SALT', 'https://thehill.com/policy/finance/548542-ocasio-cortez-says-she-disagrees-with-holding-up-infrastructure-over-salt/', '2021-04-13'),
+      cite('The Hill: Ocasio-Cortez on SALT', 'https://thehill.com/policy/finance/548542-ocasio-cortez-says-she-disagrees-with-holding-up-infrastructure-over-salt/', '2021-04-13'),
     ]),
     pos('payroll', 'Social Security Expansion Act (S.770): 12.4% payroll tax on earnings above $250,000; the net investment income tax rises from 3.8% to 16.2% in lieu of payroll tax on unearned income; +$2,400/yr benefits; CPI-E.', 'high', [SRC.ssea, SRC.sseaText], socialSecurityExpansionAct),
     pos('capitalGains', 'Capital gains and dividends taxed as ordinary income above $250,000 (Sanders financing paper); 5% annual tax on net worth above $1B (Sanders/Khanna, 2026-03-02, not modeled).', 'high', [
       SRC.sandersM4aFinance,
-      cite('Sanders/Khanna — Make Billionaires Pay Their Fair Share Act', 'https://www.sanders.senate.gov/press-releases/news-sanders-and-khanna-introduce-legislation-to-tax-billionaire-wealth-and-invest-in-working-families/', '2026-03-02'),
+      cite('Sanders/Khanna: Make Billionaires Pay Their Fair Share Act', 'https://www.sanders.senate.gov/press-releases/news-sanders-and-khanna-introduce-legislation-to-tax-billionaire-wealth-and-invest-in-working-families/', '2026-03-02'),
     ], (p) => {
       p.capitalGains.ordinaryAbove = 250000
     }),
@@ -123,14 +123,14 @@ export const PROGRESSIVE: Platform = {
   ],
 }
 
-/** Libertarian Party platform — no numeric parameters anywhere; modeled as the mechanical removal of federal taxes. */
+/** Libertarian Party platform, no numeric parameters anywhere; modeled as the mechanical removal of federal taxes. */
 export const LIBERTARIAN: Platform = {
   id: 'party-lib',
   name: 'Libertarian Party',
   shortName: 'Libertarian',
   kind: 'party',
   party: 'L',
-  role: 'Party baseline — national platform as published at lp.org (accessed Sept 2026)',
+  role: 'Party baseline: national platform as published at lp.org (accessed Sept 2026)',
   description:
     'Repeal the federal income tax and abolish the IRS; phase out Social Security toward a private voluntary system; free-market healthcare with no named position on the ACA, Medicaid or Medicare; remove all trade barriers. The platform contains no numbers, so this bundle shows only the mechanical removal of federal income and payroll taxes and of ACA subsidies and Medicaid expansion.',
   positions: [
@@ -175,7 +175,7 @@ export const MAGA: Platform = {
   shortName: 'Populist right',
   kind: 'party',
   party: 'R',
-  role: 'Lane baseline — Hawley/Vance departures from the GOP baseline',
+  role: 'Lane baseline: Hawley/Vance departures from the GOP baseline',
   inheritsFrom: 'party-gop',
   description:
     'The GOP baseline plus a $5,000 child credit refundable against payroll taxes, tariff-funded rebate checks, extension of the enhanced ACA credits (Hawley’s vote), reversal of the Medicaid provider-tax cuts, and international reference pricing for drugs.',
@@ -186,7 +186,7 @@ export const MAGA: Platform = {
       p.tariffs.rebatePerPerson = 0
     }),
     pos('aca', 'Extend the enhanced premium tax credits (Hawley was one of four Republicans voting yes on 2025-12-11); alternative $25,000 medical-expense deduction.', 'medium', [SRC.hawleyAcaVote], restoreEnhancedAca),
-    note('medicaid', '"Don’t Cut Medicaid": reverse provider-tax cuts, double the Rural Health Transformation Fund to $100B — but the 2027 work requirement stays.', 'high', [SRC.hawleyMedicaid]),
+    note('medicaid', '"Don’t Cut Medicaid": reverse provider-tax cuts, double the Rural Health Transformation Fund to $100B, but the 2027 work requirement stays.', 'high', [SRC.hawleyMedicaid]),
     note('medicare', 'International reference pricing: cap U.S. drug list prices at the average of Canada, France, Germany, Italy, Japan and the UK (Hawley/Welch).', 'high', [SRC.hawleyDrugs]),
   ],
   notes: ['No general buyback-tax increase; only a defense-contractor buyback limit (Hawley/Warren, 2026).'],

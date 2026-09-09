@@ -178,10 +178,10 @@
   "moore": {
     "name": "Wes Moore",
     "file": "moore.webp",
-    "source": "https://commons.wikimedia.org/wiki/File:Wes_Moore_Official_Governor_Portrait.jpg",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "artist": "Maryland State Government",
+    "source": "https://commons.wikimedia.org/wiki/File:Wes_Moore_at_the_Education_Policy_and_Investments_Press_Conference_2026_12.jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "artist": "MDGovpics",
     "attributionRequired": true,
     "modified": "cropped to a square and resized to 256px",
     "fetched": "2026-09-09"

@@ -142,7 +142,7 @@ const rules: StateTaxRule[] = [
       { rate: 0.0625, over: 600000 }, { rate: 0.065, over: 1200000 },
     ],
     standardDeduction: { single: 3350, mfj: 6700 }, personalExemption: 3200,
-    notes: 'County income taxes of 2.25%–3.20% (avg ~2.4%) excluded — material.', source: TF,
+    notes: 'County income taxes of 2.25%–3.20% (avg ~2.4%) are excluded, which understates Maryland tax noticeably.', source: TF,
   },
   {
     code: 'MA', name: 'Massachusetts', type: 'graduated',
@@ -228,7 +228,7 @@ const rules: StateTaxRule[] = [
       { rate: 0.109, over: 25000000 },
     ],
     standardDeduction: { single: 8000, mfj: 16050 }, dependentExemption: 1000,
-    notes: 'Bottom five rates cut 0.1pt for 2026. NYC (3.078%–3.876%) and Yonkers taxes excluded — material for NYC residents.', source: TF,
+    notes: 'Bottom five rates cut 0.1pt for 2026. NYC (3.078%–3.876%) and Yonkers taxes are excluded, which understates tax for city residents.', source: TF,
   },
   { code: 'NC', name: 'North Carolina', type: 'flat', rate: 0.0399, standardDeduction: { single: 12750, mfj: 25500 }, notes: 'Rate cut to 3.99% for 2026.', source: TF_CHANGES },
   {
@@ -257,7 +257,7 @@ const rules: StateTaxRule[] = [
     brackets: [{ rate: 0.0475, over: 0 }, { rate: 0.0675, over: 4550 }, { rate: 0.0875, over: 11400 }, { rate: 0.099, over: 125000 }],
     mfjDouble: true,
     standardDeduction: { single: 2910, mfj: 5820 },
-    notes: '$256 personal credit not modeled. Portland-metro SHS/PFA taxes excluded — material.', source: TF,
+    notes: '$256 personal credit not modeled. Portland-metro SHS/PFA taxes are excluded, which understates tax for Portland-area residents.', source: TF,
   },
   { code: 'PA', name: 'Pennsylvania', type: 'flat', rate: 0.0307, notes: 'No deduction or exemption. Local EIT near-universal (avg 0.99%; Philadelphia ~3.75%) excluded.', source: TF },
   {
@@ -312,7 +312,7 @@ const rules: StateTaxRule[] = [
     brackets: [{ rate: 0.035, over: 0 }, { rate: 0.044, over: 15110 }, { rate: 0.053, over: 51950 }, { rate: 0.0765, over: 332720 }],
     bracketsMfj: [{ rate: 0.035, over: 0 }, { rate: 0.044, over: 20150 }, { rate: 0.053, over: 69260 }, { rate: 0.0765, over: 443630 }],
     standardDeduction: { single: 13960, mfj: 25840 }, personalExemption: 700,
-    notes: 'Standard deduction phases out from ~$20k/$29k of income (not modeled) — overstates the deduction for most filers.', source: TF,
+    notes: 'Standard deduction phases out from ~$20k/$29k of income (not modeled), so this overstates the deduction for most filers.', source: TF,
   },
   none('WY', 'Wyoming'),
   {

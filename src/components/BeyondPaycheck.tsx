@@ -139,7 +139,7 @@ export function BeyondPaycheck({ baseline, results, all, onShowPositions }: Prop
                         const d = DIR[sp?.direction ?? 'none']
                         const cost = sp ? costText(sp) : null
                         const tip = sp
-                          ? `${sp.summary}${cost ? ` (${cost})` : ''}${sp.inherited ? ` — ${sp.source.shortName} default` : ''}`
+                          ? `${sp.summary}${cost ? ` (${cost})` : ''}${sp.inherited ? `, ${sp.source.shortName} default` : ''}`
                           : 'No stated position'
                         return (
                           <td key={platform.id} className="px-1 py-1.5 text-center">

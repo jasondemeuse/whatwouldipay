@@ -293,7 +293,7 @@ export interface Assumptions {
 export type Confidence = 'high' | 'medium' | 'low' | 'default'
 
 export interface Citation {
-  /** Short label, e.g. "Campaign site — Tax plan" */
+  /** Short label, e.g. "Campaign site, Tax plan" */
   label: string
   url: string
   /** ISO date of the source. */

@@ -1,5 +1,12 @@
 {
   "_comment": "Acknowledgement that these avatars carry Creative Commons licenses requiring attribution. The fetch script refuses to build an attribution-required image whose id is missing here. Credits are rendered from public/avatars/CREDITS.json.",
-  "shapiro": { "license": "CC BY 4.0", "acknowledged": "2026-09-08" },
-  "moore": { "license": "CC BY-SA 4.0", "acknowledged": "2026-09-08", "note": "The cropped derivative moore.webp is itself CC BY-SA 4.0; noted in README." }
+  "shapiro": {
+    "license": "CC BY 4.0",
+    "acknowledged": "2026-09-08"
+  },
+  "moore": {
+    "license": "CC BY 4.0",
+    "acknowledged": "2026-09-09",
+    "note": "Switched from the CC BY-SA official portrait to a CC BY 4.0 MDGovpics photo so no share-alike obligation attaches to the repo."
+  }
 }

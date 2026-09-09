@@ -1,7 +1,7 @@
 import type { ByFilingStatus, PolicyParams } from '../engine/types'
 
 /**
- * CURRENT-LAW BASELINE — tax year 2026 / plan year 2026, after the One Big Beautiful Bill Act
+ * CURRENT-LAW BASELINE: tax year 2026 / plan year 2026, after the One Big Beautiful Bill Act
  * (P.L. 119-21, enacted 2025-07-04). Compiled 2026-09-08. Full research notes: docs/research/03-baseline-2026.md
  *
  * Primary sources:
@@ -146,7 +146,7 @@ export const BASELINE_2026: PolicyParams = {
   },
 
   aca: {
-    // [RP25] 2026 applicable percentages under current law — enhanced (ARPA/IRA) credits expired 2025-12-31 and
+    // [RP25] 2026 applicable percentages under current law. Enhanced (ARPA/IRA) credits expired 2025-12-31 and
     // had not been restored as of 2026-08-03 [PK-ACA]. The 400% FPL cliff is back.
     applicablePct: [
       [100, 0.021], [133, 0.021],
@@ -235,7 +235,7 @@ export const BASELINE_2026: PolicyParams = {
   },
 
   fpl: {
-    // [HHS25] — 2026 marketplace subsidies use the 2025 guidelines (45 CFR 155.305(f))
+    // [HHS25]: 2026 marketplace subsidies use the 2025 guidelines (45 CFR 155.305(f))
     aca: {
       year: 2025,
       base: [15650, 21150, 26650, 32150, 37650, 43150, 48650, 54150],
@@ -244,7 +244,7 @@ export const BASELINE_2026: PolicyParams = {
       perAdditional: { base: 5500, ak: 6880, hi: 6330 },
       source: 'https://aspe.hhs.gov/sites/default/files/documents/dd73d4f00d8a819d10b2fdb70d254f7b/detailed-guidelines-2025.pdf',
     },
-    // [HHS26] — Medicaid eligibility uses the 2026 guidelines
+    // [HHS26]: Medicaid eligibility uses the 2026 guidelines
     medicaid: {
       year: 2026,
       base: [15960, 21640, 27320, 33000, 38680, 44360, 50040, 55720],

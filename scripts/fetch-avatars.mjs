@@ -94,10 +94,20 @@ for (const p of people) {
     if (buf.length > 60 * 1024 * 1024) throw new Error(`${p.id}: source image over 60 MB`)
     const img = sharp(buf).rotate()
     const { width, height } = await img.metadata()
-    const side = Math.min(width, height)
-    const cropY = p.cropY ?? (height > width ? 0.06 : 0)
-    const top = Math.min(Math.max(0, Math.round(height * cropY)), height - side)
-    const left = Math.round((width - side) / 2)
+    // Default: full-width square from near the top. `box: [x, y, size]` (fractions of width/height/width) overrides it
+    // for group shots or off-center subjects.
+    let side = Math.min(width, height)
+    let top, left
+    if (p.box) {
+      const [bx, by, bs] = p.box
+      side = Math.min(Math.round(width * bs), width, height)
+      left = Math.min(Math.max(0, Math.round(width * bx)), width - side)
+      top = Math.min(Math.max(0, Math.round(height * by)), height - side)
+    } else {
+      const cropY = p.cropY ?? (height > width ? 0.06 : 0)
+      top = Math.min(Math.max(0, Math.round(height * cropY)), height - side)
+      left = Math.round((width - side) / 2)
+    }
     const square = img.extract({ left, top, width: side, height: side })
     await square.clone().resize(256, 256).webp({ quality: 82 }).toFile(path.join(outDir, `${p.id}.webp`))
     await square.clone().resize(64, 64).webp({ quality: 80 }).toFile(path.join(outDir, `${p.id}-64.webp`))

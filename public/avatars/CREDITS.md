@@ -25,9 +25,9 @@ each has been cropped to a square and resized. Nobody depicted endorses this too
 | Ron DeSantis | Public domain | Office of Governor Ron DeSantis | [source](https://commons.wikimedia.org/wiki/File:Ron_DeSantis_3x4_portrait.jpg) |
 | Ruben Gallego | Public domain (US government work, 17 U.S.C. § 105) | US Congress / GPO | [source](https://unitedstates.github.io/images/congress/original/G000574.jpg) |
 | Ted Cruz | Public domain (US government work, 17 U.S.C. § 105) | US Congress / GPO | [source](https://unitedstates.github.io/images/congress/original/C001098.jpg) |
-| Wes Moore | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) | Maryland State Government | [source](https://commons.wikimedia.org/wiki/File:Wes_Moore_Official_Governor_Portrait.jpg) |
+| Wes Moore | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) | MDGovpics | [source](https://commons.wikimedia.org/wiki/File:Wes_Moore_at_the_Education_Policy_and_Investments_Press_Conference_2026_12.jpg) |
 
 ## Attribution-required files
 
 - **Josh Shapiro** — Maryland GovPics, cropped. Licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0). Source: https://commons.wikimedia.org/wiki/File:Josh_Shapiro_December_2025_(cropped).jpg
-- **Wes Moore** — Maryland State Government, cropped. Licensed CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0). Source: https://commons.wikimedia.org/wiki/File:Wes_Moore_Official_Governor_Portrait.jpg This cropped derivative (`moore.webp`) is likewise licensed CC BY-SA 4.0.
+- **Wes Moore** — MDGovpics, cropped. Licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0). Source: https://commons.wikimedia.org/wiki/File:Wes_Moore_at_the_Education_Policy_and_Investments_Press_Conference_2026_12.jpg

@@ -13,7 +13,7 @@ interface Props {
 }
 
 /**
- * "Why this number?" — a bridge from current law to the platform's net income, one bar per position,
+ * "Why this number?", a bridge from current law to the platform's net income, one bar per position,
  * followed by the positions that were applied but didn't touch this household (with the reason).
  */
 export function WhyPanel({ platform, attribution, onClose, onShowPositions }: Props) {

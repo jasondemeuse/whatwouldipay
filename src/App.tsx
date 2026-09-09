@@ -140,43 +140,47 @@ export default function App() {
         Skip to results
       </a>
       <header className="border-b border-rule bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-5">
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-            <div>
-              <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink">
-                <a href="#/" className="hover:underline">
-                  What Would I Pay?
-                </a>
-              </h1>
-              <p className="mt-1 max-w-2xl text-sm text-ink-2">
-                Enter your household, pick the politicians you want to compare, and see how each one's published tax and healthcare
-                platform would change the money you keep each year, and why.
-              </p>
-            </div>
-            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
-              <li>
-                Model updated <time dateTime={SITE.modelUpdated}>{SITE.modelUpdatedLabel}</time>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
+          <a href="#/" className="font-serif text-xl font-semibold tracking-tight text-ink hover:underline">
+            What Would I Pay?
+          </a>
+          <nav aria-label="Site" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
+            <a href="#/methodology" className="underline-offset-2 hover:text-ink hover:underline">
+              Methodology &amp; sources
+            </a>
+            <a href={SITE.repo} className="underline-offset-2 hover:text-ink hover:underline" target="_blank" rel="noreferrer">
+              Source
+            </a>
+            <ThemeToggle />
+          </nav>
+        </div>
+      </header>
+
+      {!isMethodology && (
+        <div className="border-b border-rule-2 bg-paper">
+          <div className="mx-auto max-w-7xl px-4 pb-6 pt-8">
+            <h1 className="max-w-3xl font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+              What would each candidate's plan cost you?
+            </h1>
+            <p className="mt-3 max-w-2xl text-base text-ink-2">
+              Enter your household, pick the politicians you want to compare, and see how each one's published tax and healthcare platform
+              would change the money you keep each year. Every number has a source, and every result explains itself.
+            </p>
+            <ul className="mt-4 flex flex-wrap gap-2 text-xs text-ink-2">
+              <li className="rounded-full border border-rule bg-card px-2.5 py-1">
+                Tax year 2026, current law after the 2025 tax act
               </li>
-              <li>
-                {politicianCount} politicians · {sourceCount} sources
+              <li className="rounded-full border border-rule bg-card px-2.5 py-1">
+                {politicianCount} politicians · 5 party baselines · {sourceCount} sources
               </li>
-              <li>
-                <a href="#/methodology" className="underline hover:text-ink">
-                  Methodology & sources
-                </a>
+              <li className="rounded-full border border-rule bg-card px-2.5 py-1">
+                Updated <time dateTime={SITE.modelUpdated}>{SITE.modelUpdatedLabel}</time>
               </li>
-              <li>
-                <a href={SITE.repo} className="underline hover:text-ink" target="_blank" rel="noreferrer">
-                  Source on GitHub
-                </a>
-              </li>
-              <li>
-                <ThemeToggle />
-              </li>
+              <li className="rounded-full border border-rule bg-card px-2.5 py-1">Free and open source</li>
             </ul>
           </div>
         </div>
-      </header>
+      )}
 
       {isMethodology ? (
         <MethodologyPage />
@@ -205,6 +209,8 @@ export default function App() {
 
           <ResultsView
             baseline={baseline}
+            state={household.state}
+            filingStatus={household.filingStatus}
             results={results}
             all={PLATFORMS}
             guessMode={guessMode}

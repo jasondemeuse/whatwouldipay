@@ -3,9 +3,9 @@
 A prototype web app that lets you enter your household details and compare how different politicians' (and parties') tax and healthcare platforms would change what you actually keep each year.
 
 - **Stack:** Vite + React 19 + TypeScript + Tailwind v4. No backend; all data ships as typed TypeScript.
-- **Engine:** `src/engine/` — federal income tax, payroll tax, CTC/EITC, OBBBA deductions, ACA premium tax credits, Medicaid eligibility, Medicare premiums, rough state income tax, tariff pass-through.
+- **Engine:** `src/engine/`, federal income tax, payroll tax, CTC/EITC, OBBBA deductions, ACA premium tax credits, Medicaid eligibility, Medicare premiums, rough state income tax, tariff pass-through.
 - **Data:** `src/data/baseline2026.ts` (current law, cited), `src/data/platforms/` (one file per politician / party, every position cited with a confidence level), `src/data/states.ts`.
-- **Research:** `docs/research/` — prior-art survey, data-source survey, and the raw position reports the dataset was built from.
+- **Research:** `docs/research/`, prior-art survey, data-source survey, and the raw position reports the dataset was built from.
 
 ```sh
 npm install
@@ -18,9 +18,9 @@ npm run build
 
 A platform is a list of `PolicyPosition`s. Each has an `area` (e.g. `ctc`, `aca`), a one-line summary, citations, a confidence rating, and an optional `apply(params)` function that mutates a cloned copy of the baseline parameters. Politicians inherit unstated positions from their party or lane baseline (`inheritsFrom`), and those show up as "Party default" in the UI. Three helpers encode the three kinds of entry:
 
-- `pos(area, summary, confidence, citations, apply)` — a position that changes numbers.
-- `note(area, summary, confidence, citations)` — on the record, no parameter effect; the party default still applies.
-- `hold(area, summary, confidence, citations)` — a documented "keeps current law" (for example a non-cosponsorship) that blocks the party default.
+- `pos(area, summary, confidence, citations, apply)`, a position that changes numbers.
+- `note(area, summary, confidence, citations)`, on the record, no parameter effect; the party default still applies.
+- `hold(area, summary, confidence, citations)`, a documented "keeps current law" (for example a non-cosponsorship) that blocks the party default.
 
 Confidence: `high` = explicit numeric proposal, sponsored bill or signed law; `medium` = clear direction without numbers; `low` = inferred from votes or general statements. Every position needs at least one citation with a specific URL; `npm test` fails on empty citations, bare-domain links, duplicate areas, missing avatars, or a position that writes an assumption-owned field.
 
@@ -40,8 +40,8 @@ Everything statutory lives in `src/data/baseline2026.ts` with a source tag per b
 
 Source code is MIT (see `LICENSE`). The policy dataset under `src/data/` is additionally CC BY 4.0. Politician avatars in `public/avatars/` are official portraits: US government works in the public domain, or California/Florida state works that those states place in the public domain, except:
 
-- `shapiro.webp` — CC BY 4.0 (Maryland GovPics, cropped)
-- `moore.webp` — CC BY-SA 4.0 (Maryland State Government, cropped); the cropped derivative is likewise CC BY-SA 4.0
+- `shapiro.webp`: CC BY 4.0 (Maryland GovPics, cropped)
+- `moore.webp`: CC BY 4.0 (Maryland GovPics, cropped)
 
 Full credits with source links are generated into `public/avatars/CREDITS.md` by `node scripts/fetch-avatars.mjs`, which refuses to build any attribution-required image that isn't acknowledged in `scripts/avatar-credits.json`. Nobody depicted endorses this tool.
 

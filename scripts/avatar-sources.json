@@ -103,7 +103,12 @@
       "id": "moore",
       "name": "Wes Moore",
       "kind": "commons",
-      "file": "Wes Moore Official Governor Portrait.jpg"
+      "file": "Wes Moore at the Education Policy and Investments Press Conference 2026 12.jpg",
+      "box": [
+        0.15,
+        0.055,
+        0.135
+      ]
     },
     {
       "id": "booker",
