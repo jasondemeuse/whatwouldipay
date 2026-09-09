@@ -1,4 +1,5 @@
-import type { Platform } from '../engine/types'
+import type { Party, Platform } from '../engine/types'
+import { Avatar } from './Avatar'
 
 interface Props {
   platforms: Platform[]
@@ -6,17 +7,25 @@ interface Props {
   onChange: (ids: string[]) => void
 }
 
-const PARTY_COLOR: Record<string, string> = {
-  D: 'border-blue-300 bg-blue-50 text-blue-900 data-[on=true]:bg-blue-600 data-[on=true]:text-white data-[on=true]:border-blue-600',
-  R: 'border-red-300 bg-red-50 text-red-900 data-[on=true]:bg-red-600 data-[on=true]:text-white data-[on=true]:border-red-600',
-  I: 'border-emerald-300 bg-emerald-50 text-emerald-900 data-[on=true]:bg-emerald-600 data-[on=true]:text-white data-[on=true]:border-emerald-600',
-  L: 'border-amber-300 bg-amber-50 text-amber-900 data-[on=true]:bg-amber-600 data-[on=true]:text-white data-[on=true]:border-amber-600',
-  G: 'border-green-300 bg-green-50 text-green-900 data-[on=true]:bg-green-700 data-[on=true]:text-white data-[on=true]:border-green-700',
+/** Party identity as a small dot only. Fills stay neutral so the control never reads as a judgment. */
+export const PARTY_DOT: Record<Party, string> = {
+  D: 'var(--color-party-d)',
+  R: 'var(--color-party-r)',
+  I: 'var(--color-party-i)',
+  L: 'var(--color-party-l)',
+  G: 'var(--color-party-g)',
+}
+
+export const PARTY_NAME: Record<Party, string> = {
+  D: 'Democrat',
+  R: 'Republican',
+  I: 'Independent',
+  L: 'Libertarian',
+  G: 'Green',
 }
 
 export function PlatformPicker({ platforms, selected, onChange }: Props) {
-  const toggle = (id: string) =>
-    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
+  const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
 
   const groups: Array<{ title: string; items: Platform[] }> = [
     { title: 'Party baselines', items: platforms.filter((p) => p.kind === 'party') },
@@ -26,34 +35,62 @@ export function PlatformPicker({ platforms, selected, onChange }: Props) {
   ].filter((g) => g.items.length > 0)
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {groups.map((g) => (
         <div key={g.title}>
-          <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">{g.title}</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">{g.title}</div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={g.title}>
             {g.items.map((p) => {
               const on = selected.includes(p.id)
               return (
                 <button
                   key={p.id}
                   type="button"
-                  data-on={on}
+                  aria-pressed={on}
+                  aria-label={`${p.name}, ${p.role}${on ? ', selected' : ''}`}
                   onClick={() => toggle(p.id)}
-                  title={p.role}
-                  className={`rounded-full border px-3 py-1 text-sm font-medium transition ${PARTY_COLOR[p.party] ?? PARTY_COLOR.I}`}
+                  className={`group inline-flex min-h-9 items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-medium transition-colors duration-150 ${
+                    on
+                      ? 'border-ink bg-ink text-card'
+                      : 'border-rule bg-card text-ink hover:border-ink-4 hover:bg-paper-2'
+                  }`}
                 >
-                  {p.shortName}
+                  <Avatar platform={p} size={28} />
+                  <span className="whitespace-nowrap">{p.shortName}</span>
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-2 w-2 rounded-full ring-1 ring-white/60"
+                    style={{ background: PARTY_DOT[p.party] }}
+                    title={PARTY_NAME[p.party]}
+                  />
                 </button>
               )
             })}
           </div>
         </div>
       ))}
-      {selected.length > 0 && (
-        <button type="button" onClick={() => onChange([])} className="text-xs text-slate-500 underline hover:text-slate-700">
-          Clear selection
-        </button>
-      )}
+      <div className="flex items-center gap-4 text-xs text-ink-3">
+        <span className="inline-flex items-center gap-3">
+          <Legend party="D" />
+          <Legend party="R" />
+          <Legend party="I" />
+          <Legend party="L" />
+        </span>
+        {selected.length > 0 && (
+          <button type="button" onClick={() => onChange([])} className="ml-auto underline hover:text-ink">
+            Clear selection
+          </button>
+        )}
+      </div>
     </div>
+  )
+}
+
+function Legend({ party }: { party: Party }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full" style={{ background: PARTY_DOT[party] }} />
+      {PARTY_NAME[party]}
+    </span>
   )
 }

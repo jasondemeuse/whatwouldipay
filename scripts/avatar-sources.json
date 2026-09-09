@@ -1,0 +1,128 @@
+{
+  "_comment": "Source of truth for public/avatars. Run `node scripts/fetch-avatars.mjs`. kind=congress uses unitedstates/images (CC0 mirror of public-domain GPO portraits). kind=commons resolves the file on Wikimedia Commons and records its license; the build fails if a file requires attribution and is not in CREDITS.json. cropY is the fraction of image height where the square crop starts (default 0.06).",
+  "userAgent": "WhatWouldIPay/1.0 (https://github.com/jasondemeuse/whatwouldipay; demeuseja@gmail.com)",
+  "people": [
+    {
+      "id": "vance",
+      "name": "JD Vance",
+      "kind": "commons",
+      "file": "March 2026 Official Vice Presidential Portrait of JD Vance.jpg"
+    },
+    {
+      "id": "rubio",
+      "name": "Marco Rubio",
+      "kind": "commons",
+      "file": "Official portrait of Secretary Marco Rubio.jpg"
+    },
+    {
+      "id": "desantis",
+      "name": "Ron DeSantis",
+      "kind": "commons",
+      "file": "Ron DeSantis 3x4 portrait.jpg"
+    },
+    {
+      "id": "cruz",
+      "name": "Ted Cruz",
+      "kind": "congress",
+      "bioguide": "C001098"
+    },
+    {
+      "id": "paul",
+      "name": "Rand Paul",
+      "kind": "congress",
+      "bioguide": "P000603"
+    },
+    {
+      "id": "hawley",
+      "name": "Josh Hawley",
+      "kind": "congress",
+      "bioguide": "H001089"
+    },
+    {
+      "id": "haley",
+      "name": "Nikki Haley",
+      "kind": "commons",
+      "file": "Nikki Haley official photo.jpg"
+    },
+    {
+      "id": "aoc",
+      "name": "Alexandria Ocasio-Cortez",
+      "kind": "congress",
+      "bioguide": "O000172"
+    },
+    {
+      "id": "ossoff",
+      "name": "Jon Ossoff",
+      "kind": "congress",
+      "bioguide": "O000174"
+    },
+    {
+      "id": "newsom",
+      "name": "Gavin Newsom",
+      "kind": "commons",
+      "file": "Governor of California Gavin Newsom (cropped 3x4).jpg"
+    },
+    {
+      "id": "harris",
+      "name": "Kamala Harris",
+      "kind": "commons",
+      "file": "Kamala Harris Vice Presidential Portrait.jpg"
+    },
+    {
+      "id": "shapiro",
+      "name": "Josh Shapiro",
+      "kind": "commons",
+      "file": "Josh Shapiro December 2025 (cropped).jpg",
+      "cropY": 0.0
+    },
+    {
+      "id": "buttigieg",
+      "name": "Pete Buttigieg",
+      "kind": "commons",
+      "file": "Pete Buttigieg, Secretary of Transportation.jpg"
+    },
+    {
+      "id": "whitmer",
+      "name": "Gretchen Whitmer",
+      "kind": "commons",
+      "file": "2025 Gretchen Whitmer (cropped).jpg"
+    },
+    {
+      "id": "pritzker",
+      "name": "JB Pritzker",
+      "kind": "commons",
+      "file": "Governor JB Pritzker official portrait 2019 (crop).jpg"
+    },
+    {
+      "id": "beshear",
+      "name": "Andy Beshear",
+      "kind": "commons",
+      "file": "Kentucky Air Guard supports governor's inauguration (1) (cropped).jpg"
+    },
+    {
+      "id": "moore",
+      "name": "Wes Moore",
+      "kind": "commons",
+      "file": "Wes Moore Official Governor Portrait.jpg"
+    },
+    {
+      "id": "booker",
+      "name": "Cory Booker",
+      "kind": "congress",
+      "bioguide": "B001288",
+      "cropY": 0.0
+    },
+    {
+      "id": "gallego",
+      "name": "Ruben Gallego",
+      "kind": "congress",
+      "bioguide": "G000574"
+    },
+    {
+      "id": "sanders",
+      "name": "Bernie Sanders",
+      "kind": "congress",
+      "bioguide": "S000033"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import type { FilingStatus, HealthCoverage, Household } from '../engine/types'
 import { STATE_LIST } from '../data/states'
+import { PERSONAS } from '../data/personas'
 
 interface Props {
   value: Household
@@ -21,14 +23,56 @@ const COVERAGE: Array<{ v: HealthCoverage; label: string }> = [
   { v: 'uninsured', label: 'Uninsured' },
 ]
 
+/** Parse a typed dollar amount forgivingly: "65k", "$1,200", "2.5m" all work. Returns [value, wasReinterpreted]. */
+export function parseMoney(raw: string): [number, boolean] {
+  const s = raw.trim().toLowerCase().replace(/[$,\s]/g, '')
+  if (s === '') return [0, false]
+  const m = s.match(/^(\d*\.?\d+)\s*(k|m)?$/)
+  if (!m) return [Number(s.replace(/[^0-9.]/g, '')) || 0, true]
+  const n = Number(m[1]) * (m[2] === 'k' ? 1000 : m[2] === 'm' ? 1_000_000 : 1)
+  return [Math.round(n), m[2] !== undefined]
+}
+
 export function HouseholdForm({ value, onChange }: Props) {
   const set = <K extends keyof Household>(k: K, v: Household[K]) => onChange({ ...value, [k]: v })
-  const num = (k: keyof Household) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    set(k, (Number(e.target.value.replace(/[^0-9.]/g, '')) || 0) as never)
   const joint = value.filingStatus === 'mfj' || value.filingStatus === 'mfs'
+  const activePersona = PERSONAS.find((p) => JSON.stringify(p.household) === JSON.stringify(value))?.id
+
+  const money = (k: keyof Household, label: string, hint?: string, width: 'sm' | 'md' = 'md') => (
+    <MoneyField
+      label={label}
+      hint={hint}
+      width={width}
+      value={value[k] as number}
+      onCommit={(n) => set(k, n as never)}
+    />
+  )
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      <Section title="Start from an example">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Example households">
+          {PERSONAS.map((p) => {
+            const on = activePersona === p.id
+            return (
+              <button
+                key={p.id}
+                type="button"
+                aria-pressed={on}
+                title={p.hint}
+                onClick={() => onChange(p.household)}
+                className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                  on ? 'border-accent bg-accent-2 text-ink' : 'border-rule bg-card text-ink-2 hover:border-ink-4 hover:text-ink'
+                }`}
+              >
+                {p.label}
+              </button>
+            )
+          })}
+        </div>
+        {activePersona && <p className="text-xs text-ink-3">{PERSONAS.find((p) => p.id === activePersona)?.hint}. Edit anything below.</p>}
+      </Section>
+
       <Section title="Household">
         <Field label="Filing status">
           <select className={inputCls} value={value.filingStatus} onChange={(e) => set('filingStatus', e.target.value as FilingStatus)}>
@@ -49,53 +93,33 @@ export function HouseholdForm({ value, onChange }: Props) {
           </select>
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Your age">
-            <input className={inputCls} inputMode="numeric" value={value.age} onChange={num('age')} />
-          </Field>
-          {joint && (
-            <Field label="Spouse age">
-              <input className={inputCls} inputMode="numeric" value={value.spouseAge} onChange={num('spouseAge')} />
-            </Field>
-          )}
+          <IntField label="Your age" value={value.age} onCommit={(n) => set('age', n)} />
+          {joint && <IntField label="Spouse age" value={value.spouseAge} onCommit={(n) => set('spouseAge', n)} />}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Children under 17">
-            <input className={inputCls} inputMode="numeric" value={value.childrenUnder17} onChange={num('childrenUnder17')} />
-          </Field>
-          <Field label="Other dependents">
-            <input className={inputCls} inputMode="numeric" value={value.otherDependents} onChange={num('otherDependents')} />
-          </Field>
+          <IntField label="Children under 17" value={value.childrenUnder17} onCommit={(n) => set('childrenUnder17', n)} />
+          <IntField label="Other dependents" value={value.otherDependents} onCommit={(n) => set('otherDependents', n)} />
         </div>
       </Section>
 
       <Section title="Income (annual)">
-        <Field label="Your wages (W-2)">
-          <Money value={value.wages} onChange={num('wages')} />
-        </Field>
-        {joint && (
-          <Field label="Spouse wages (W-2)">
-            <Money value={value.spouseWages} onChange={num('spouseWages')} />
-          </Field>
-        )}
-        <Field label="Self-employment income (net)">
-          <Money value={value.selfEmploymentIncome} onChange={num('selfEmploymentIncome')} />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="…of which tips" hint="Included in wages">
-            <Money value={value.tipIncome} onChange={num('tipIncome')} />
-          </Field>
-          <Field label="…of which overtime premium" hint="The extra 'half' of time-and-a-half">
-            <Money value={value.overtimeIncome} onChange={num('overtimeIncome')} />
-          </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Long-term capital gains">
-            <Money value={value.longTermGains} onChange={num('longTermGains')} />
-          </Field>
-          <Field label="Social Security benefits">
-            <Money value={value.socialSecurityBenefits} onChange={num('socialSecurityBenefits')} />
-          </Field>
-        </div>
+        {money('wages', 'Your wages (W-2)')}
+        {joint && money('spouseWages', 'Spouse wages (W-2)')}
+        {money('selfEmploymentIncome', 'Self-employment income (net)')}
+        <details className="group rounded-md border border-rule-2 bg-paper-2/60 px-3 py-2" open={value.tipIncome > 0 || value.overtimeIncome > 0}>
+          <summary className="cursor-pointer text-sm font-medium text-ink-2 marker:text-ink-4">Any tips or overtime in those wages?</summary>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {money('tipIncome', 'Tips', 'Included in wages', 'sm')}
+            {money('overtimeIncome', 'Overtime premium', "The extra 'half' of time-and-a-half", 'sm')}
+          </div>
+        </details>
+        <details className="group rounded-md border border-rule-2 bg-paper-2/60 px-3 py-2" open={value.longTermGains > 0 || value.socialSecurityBenefits > 0}>
+          <summary className="cursor-pointer text-sm font-medium text-ink-2 marker:text-ink-4">Investment or Social Security income?</summary>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {money('longTermGains', 'Long-term capital gains', undefined, 'sm')}
+            {money('socialSecurityBenefits', 'Social Security benefits', undefined, 'sm')}
+          </div>
+        </details>
       </Section>
 
       <Section title="Health coverage">
@@ -109,40 +133,35 @@ export function HouseholdForm({ value, onChange }: Props) {
           </select>
         </Field>
         {value.healthCoverage === 'employer' && (
-          <Field label="Your share of premiums per year" hint="Leave blank to use the national average">
-            <Money
-              value={value.employerPremiumEmployeeShare ?? ''}
-              placeholder="national avg"
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9.]/g, '')
-                set('employerPremiumEmployeeShare', raw === '' ? undefined : Number(raw))
-              }}
-            />
-          </Field>
+          <MoneyField
+            label="Your share of premiums per year"
+            hint="Leave blank to use the national average"
+            value={value.employerPremiumEmployeeShare}
+            placeholder="national avg"
+            allowBlank
+            onCommit={(n) => set('employerPremiumEmployeeShare', n === undefined ? undefined : n)}
+          />
         )}
       </Section>
 
-      <Section title="Deductions (optional)">
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="State & local taxes paid" hint="Property + state income tax, for SALT">
-            <Money value={value.saltPaid} onChange={num('saltPaid')} />
-          </Field>
-          <Field label="Other itemized" hint="Mortgage interest, charity">
-            <Money value={value.otherItemized} onChange={num('otherItemized')} />
-          </Field>
+      <details className="group rounded-md border border-rule-2 bg-paper-2/60 px-3 py-2" open={value.saltPaid > 0 || value.otherItemized > 0}>
+        <summary className="cursor-pointer text-sm font-medium text-ink-2 marker:text-ink-4">Do you itemize deductions?</summary>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {money('saltPaid', 'State & local taxes paid', 'Property + state income tax', 'sm')}
+          {money('otherItemized', 'Other itemized', 'Mortgage interest, charity', 'sm')}
         </div>
-      </Section>
+      </details>
     </div>
   )
 }
 
 const inputCls =
-  'w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'
+  'w-full rounded-md border border-rule bg-card px-3 py-1.5 text-sm text-ink shadow-none transition-colors hover:border-ink-4'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset className="space-y-3">
-      <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</legend>
+      <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">{title}</legend>
       {children}
     </fieldset>
   )
@@ -151,27 +170,87 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-ink-2">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-ink-3">{hint}</span>}
     </label>
   )
 }
 
-function Money({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: number | string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
-}) {
-  const display = typeof value === 'number' ? value.toLocaleString('en-US') : value
+function IntField({ label, value, onCommit }: { label: string; value: number; onCommit: (n: number) => void }) {
   return (
-    <div className="relative">
-      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-400">$</span>
-      <input className={`${inputCls} pl-7`} inputMode="numeric" value={display} placeholder={placeholder} onChange={onChange} />
-    </div>
+    <Field label={label}>
+      <input
+        className={`${inputCls} max-w-24`}
+        inputMode="numeric"
+        value={value}
+        onChange={(e) => onCommit(Math.max(0, Math.floor(Number(e.target.value.replace(/[^0-9]/g, '')) || 0)))}
+      />
+    </Field>
+  )
+}
+
+/**
+ * Money input per GOV.UK guidance: text input, `$` prefix hidden from AT, inputmode numeric, width sized to
+ * content. Accepts "65k" style shorthand and shows how it was read.
+ */
+function MoneyField({
+  label,
+  hint,
+  value,
+  onCommit,
+  placeholder,
+  allowBlank = false,
+  width = 'md',
+}: {
+  label: string
+  hint?: string
+  value: number | undefined
+  onCommit: (n: number | undefined) => void
+  placeholder?: string
+  allowBlank?: boolean
+  width?: 'sm' | 'md'
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const [note, setNote] = useState<string | null>(null)
+  const display = draft ?? (value === undefined ? '' : value.toLocaleString('en-US'))
+
+  const commit = (raw: string) => {
+    setDraft(null)
+    if (raw.trim() === '') {
+      setNote(null)
+      onCommit(allowBlank ? undefined : 0)
+      return
+    }
+    const [n, reinterpreted] = parseMoney(raw)
+    onCommit(n)
+    setNote(reinterpreted ? `Read as $${n.toLocaleString('en-US')}` : null)
+  }
+
+  return (
+    <Field label={label} hint={note ?? hint}>
+      <div className={`relative ${width === 'sm' ? 'max-w-36' : 'max-w-48'}`}>
+        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-ink-4">
+          $
+        </span>
+        <input
+          className={`${inputCls} money pl-7`}
+          inputMode="numeric"
+          autoComplete="off"
+          value={display}
+          placeholder={placeholder}
+          onChange={(e) => {
+            setDraft(e.target.value)
+            // Commit live for plain numbers so results update as you type; shorthand commits on blur.
+            const [n] = parseMoney(e.target.value)
+            if (/^[\d,$\s.]*$/.test(e.target.value)) onCommit(e.target.value.trim() === '' && allowBlank ? undefined : n)
+          }}
+          onBlur={(e) => commit(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+          }}
+        />
+      </div>
+    </Field>
   )
 }

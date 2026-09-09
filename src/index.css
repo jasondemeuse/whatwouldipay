@@ -1,12 +1,137 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/source-serif-4";
 
-:root {
-  color-scheme: light;
-  /* Polarity colors for "you gain / you lose". Deliberately not blue/red, which read as party colors here. */
-  --gain: #1baf7a;
-  --loss: #eb6834;
+/*
+ * Design tokens. Editorial / data-journalism register: warm paper, near-black ink, hairline rules,
+ * one accent, and polarity colors that are deliberately NOT red/blue (party colors) and are always
+ * paired with a glyph or sign so color is never the only carrier.
+ * Defined in OKLCH so lightness steps are perceptually even.
+ */
+@theme {
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", ui-serif, Georgia, serif;
+
+  /* Surfaces */
+  --color-paper: oklch(0.985 0.005 85);
+  --color-paper-2: oklch(0.965 0.007 85);
+  --color-card: oklch(1 0 0);
+
+  /* Ink */
+  --color-ink: oklch(0.2 0.012 260);
+  --color-ink-2: oklch(0.42 0.012 260);
+  --color-ink-3: oklch(0.58 0.01 260);
+  --color-ink-4: oklch(0.75 0.008 260);
+
+  /* Rules and fills */
+  --color-rule: oklch(0.88 0.008 85);
+  --color-rule-2: oklch(0.93 0.006 85);
+
+  /* The one accent: reserved for selection and the user's own result */
+  --color-accent: oklch(0.42 0.085 195);
+  --color-accent-2: oklch(0.93 0.03 195);
+
+  /* Polarity (gain / loss). Teal-green vs orange, checked with glyphs. */
+  --color-gain: oklch(0.55 0.12 165);
+  --color-gain-2: oklch(0.94 0.04 165);
+  --color-loss: oklch(0.6 0.15 45);
+  --color-loss-2: oklch(0.95 0.04 45);
+
+  /* Caution (warnings) */
+  --color-caution: oklch(0.7 0.12 80);
+  --color-caution-2: oklch(0.96 0.04 85);
+
+  /* Party identity, used ONLY as small dots/edges, never as fills for judgments */
+  --color-party-d: oklch(0.55 0.11 255);
+  --color-party-r: oklch(0.55 0.13 25);
+  --color-party-i: oklch(0.55 0.09 160);
+  --color-party-l: oklch(0.7 0.13 80);
+  --color-party-g: oklch(0.5 0.1 145);
+
+  --radius-card: 0.75rem;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Legacy aliases used by inline styles in chart components */
+:root {
+  color-scheme: light;
+  --gain: var(--color-gain);
+  --loss: var(--color-loss);
+  scroll-padding-top: 5rem;
+}
+
+/* Reserved for a later dark theme; tokens will be redefined here. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-paper text-ink antialiased;
+  font-feature-settings: "cv11", "ss01";
+  line-height: 1.5;
+}
+
+/* Money and other comparable figures */
+.money {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Chart-scoped surface tokens */
+.viz-root {
+  --viz-grid: var(--color-rule);
+}
+
+/* Focus: visible, 2px, offset, in the accent, only for keyboard/programmatic focus */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:where(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip link */
+.skip-link {
+  @apply sr-only;
+}
+.skip-link:focus-visible {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: 1px solid var(--color-rule);
+  border-radius: 0.375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  aside,
+  .no-print {
+    position: static !important;
+  }
+  details {
+    display: block;
+  }
+  details > *:not(summary) {
+    display: block !important;
+  }
+  .card {
+    break-inside: avoid;
+  }
 }

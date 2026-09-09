@@ -18,6 +18,15 @@ npm run build
 
 A platform is a list of `PolicyPosition`s. Each has an `area` (e.g. `ctc`, `aca`), a one-line summary, citations, a confidence rating, and an optional `apply(params)` function that mutates a cloned copy of the baseline parameters. Politicians inherit unstated positions from their party baseline (`inheritsFrom`), and those show up as "Party default" in the UI.
 
+## Photos and licenses
+
+Source code is MIT. Politician avatars in `public/avatars/` are official portraits: US government works in the public domain, or California/Florida state works that those states place in the public domain, except:
+
+- `shapiro.webp` — CC BY 4.0 (Maryland GovPics, cropped)
+- `moore.webp` — CC BY-SA 4.0 (Maryland State Government, cropped); the cropped derivative is likewise CC BY-SA 4.0
+
+Full credits with source links are generated into `public/avatars/CREDITS.md` by `node scripts/fetch-avatars.mjs`, which refuses to build any attribution-required image that isn't acknowledged in `scripts/avatar-credits.json`. Nobody depicted endorses this tool.
+
 ## Caveats
 
 This is a directional estimator, not tax software. See the Methodology section in the app for what is and isn't modeled.

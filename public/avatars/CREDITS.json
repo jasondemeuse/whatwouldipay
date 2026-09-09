@@ -1,0 +1,222 @@
+{
+  "vance": {
+    "name": "JD Vance",
+    "file": "vance.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:March_2026_Official_Vice_Presidential_Portrait_of_JD_Vance.jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "Emily J. Higgins",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "rubio": {
+    "name": "Marco Rubio",
+    "file": "rubio.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Official_portrait_of_Secretary_Marco_Rubio.jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "U.S. Department of State",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "desantis": {
+    "name": "Ron DeSantis",
+    "file": "desantis.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Ron_DeSantis_3x4_portrait.jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "Office of Governor Ron DeSantis",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "cruz": {
+    "name": "Ted Cruz",
+    "file": "cruz.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/C001098.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "paul": {
+    "name": "Rand Paul",
+    "file": "paul.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/P000603.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "hawley": {
+    "name": "Josh Hawley",
+    "file": "hawley.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/H001089.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "haley": {
+    "name": "Nikki Haley",
+    "file": "haley.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Nikki_Haley_official_photo.jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "United States Department of State",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "aoc": {
+    "name": "Alexandria Ocasio-Cortez",
+    "file": "aoc.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/O000172.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "ossoff": {
+    "name": "Jon Ossoff",
+    "file": "ossoff.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/O000174.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "newsom": {
+    "name": "Gavin Newsom",
+    "file": "newsom.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Governor_of_California_Gavin_Newsom_(cropped_3x4).jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "Charles Ommanney – Office of the Governor of California",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "harris": {
+    "name": "Kamala Harris",
+    "file": "harris.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Kamala_Harris_Vice_Presidential_Portrait.jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "Lawrence Jackson",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "shapiro": {
+    "name": "Josh Shapiro",
+    "file": "shapiro.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Josh_Shapiro_December_2025_(cropped).jpg",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "artist": "Maryland GovPics",
+    "attributionRequired": true,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "buttigieg": {
+    "name": "Pete Buttigieg",
+    "file": "buttigieg.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Pete_Buttigieg,_Secretary_of_Transportation.jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "United States Department of Transportation",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "whitmer": {
+    "name": "Gretchen Whitmer",
+    "file": "whitmer.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:2025_Gretchen_Whitmer_(cropped).jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "LBJLibraryNow",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "pritzker": {
+    "name": "JB Pritzker",
+    "file": "pritzker.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Governor_JB_Pritzker_official_portrait_2019_(crop).jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "Courtesy Photo‎United States Department of Defense",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "beshear": {
+    "name": "Andy Beshear",
+    "file": "beshear.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Kentucky_Air_Guard_supports_governor%27s_inauguration_(1)_(cropped).jpg",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "artist": "Dale Greer",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "moore": {
+    "name": "Wes Moore",
+    "file": "moore.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Wes_Moore_Official_Governor_Portrait.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "artist": "Maryland State Government",
+    "attributionRequired": true,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "booker": {
+    "name": "Cory Booker",
+    "file": "booker.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/B001288.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "gallego": {
+    "name": "Ruben Gallego",
+    "file": "gallego.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/G000574.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  },
+  "sanders": {
+    "name": "Bernie Sanders",
+    "file": "sanders.webp",
+    "source": "https://unitedstates.github.io/images/congress/original/S000033.jpg",
+    "license": "Public domain (US government work, 17 U.S.C. § 105)",
+    "licenseUrl": "",
+    "artist": "US Congress / GPO",
+    "attributionRequired": false,
+    "modified": "cropped to a square and resized to 256px",
+    "fetched": "2026-09-09"
+  }
+}

@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { Assumptions } from '../engine/types'
 import { DEFAULT_ASSUMPTIONS } from '../engine/assumptions'
 
@@ -13,17 +14,19 @@ export function AssumptionsPanel({ value, onChange, singlePayerSelected }: Props
   const dirty = JSON.stringify(value) !== JSON.stringify(DEFAULT_ASSUMPTIONS)
 
   return (
-    <section className="rounded-xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+    <section className="card rounded-card border border-caution/40 bg-caution-2/40 p-5" aria-labelledby="assumptions-h">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">Assumptions that move these numbers</h2>
-          <p className="mt-0.5 text-sm text-slate-600">
+          <h2 id="assumptions-h" className="font-serif text-lg font-semibold text-ink">
+            Assumptions that move these numbers
+          </h2>
+          <p className="mt-0.5 text-sm text-ink-2">
             These are judgment calls, not facts. Flip them and watch the results change. Defaults are the conservative reading described in
             the methodology.
           </p>
         </div>
         {dirty && (
-          <button type="button" onClick={() => onChange(DEFAULT_ASSUMPTIONS)} className="shrink-0 text-xs text-slate-600 underline hover:text-slate-800">
+          <button type="button" onClick={() => onChange(DEFAULT_ASSUMPTIONS)} className="shrink-0 text-xs text-ink-2 underline hover:text-ink">
             Reset to defaults
           </button>
         )}
@@ -36,6 +39,7 @@ export function AssumptionsPanel({ value, onChange, singlePayerSelected }: Props
           relevant={singlePayerSelected}
         >
           <Segmented
+            label="Employer premium share becomes wages"
             value={value.employerPremiumToWages ? 'yes' : 'no'}
             options={[
               { v: 'no', label: 'No' },
@@ -50,6 +54,7 @@ export function AssumptionsPanel({ value, onChange, singlePayerSelected }: Props
           relevant={singlePayerSelected}
         >
           <Segmented
+            label="Employer payroll premium passed to workers"
             value={String(value.employerPayrollPassthrough)}
             options={[
               { v: '0', label: '0%' },
@@ -65,6 +70,7 @@ export function AssumptionsPanel({ value, onChange, singlePayerSelected }: Props
           relevant
         >
           <Segmented
+            label="Tariff pass-through to consumers"
             value={String(value.tariffPassThrough)}
             options={[
               { v: '0.5', label: 'Half' },
@@ -83,8 +89,8 @@ function Row({ title, detail, relevant, children }: { title: string; detail: str
   return (
     <div className={`grid gap-2 md:grid-cols-[1fr_auto] md:items-start ${relevant ? '' : 'opacity-60'}`}>
       <div>
-        <div className="text-sm font-medium text-slate-800">{title}</div>
-        <div className="mt-0.5 text-xs text-slate-500">
+        <div className="text-sm font-medium text-ink">{title}</div>
+        <div className="mt-0.5 text-xs text-ink-3">
           {detail}
           {!relevant && ' (No single-payer platform selected, so this has no effect right now.)'}
         </div>
@@ -94,19 +100,56 @@ function Row({ title, detail, relevant, children }: { title: string; detail: str
   )
 }
 
-function Segmented({ value, options, onChange }: { value: string; options: Array<{ v: string; label: string }>; onChange: (v: string) => void }) {
+/** Radiogroup with roving tabindex and arrow-key navigation (WAI-ARIA radio group pattern). */
+function Segmented({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: Array<{ v: string; label: string }>
+  onChange: (v: string) => void
+}) {
+  const refs = useRef<Array<HTMLButtonElement | null>>([])
+  const idx = Math.max(0, options.findIndex((o) => o.v === value))
+  const move = (to: number) => {
+    const next = (to + options.length) % options.length
+    onChange(options[next].v)
+    refs.current[next]?.focus()
+  }
   return (
-    <div role="radiogroup" className="inline-flex rounded-md border border-slate-300 bg-white p-0.5 text-xs shadow-sm">
-      {options.map((o) => {
-        const on = o.v === value
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-md border border-rule bg-card p-0.5 text-xs">
+      {options.map((o, i) => {
+        const on = i === idx
         return (
           <button
             key={o.v}
+            ref={(el) => {
+              refs.current[i] = el
+            }}
             type="button"
             role="radio"
             aria-checked={on}
+            tabIndex={on ? 0 : -1}
             onClick={() => onChange(o.v)}
-            className={`rounded px-2.5 py-1 font-medium transition ${on ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault()
+                move(idx + 1)
+              } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault()
+                move(idx - 1)
+              } else if (e.key === 'Home') {
+                e.preventDefault()
+                move(0)
+              } else if (e.key === 'End') {
+                e.preventDefault()
+                move(options.length - 1)
+              }
+            }}
+            className={`rounded px-2.5 py-1 font-medium transition-colors ${on ? 'bg-ink text-card' : 'text-ink-2 hover:bg-paper-2'}`}
           >
             {o.label}
           </button>

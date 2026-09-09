@@ -12,25 +12,12 @@ import { applyAssumptions, DEFAULT_ASSUMPTIONS } from './engine/assumptions'
 import type { Assumptions, Household } from './engine/types'
 import { BASELINE_2026 } from './data/baseline2026'
 import { PLATFORMS } from './data/platforms'
+import { PERSONAS } from './data/personas'
 
-const DEFAULT_HOUSEHOLD: Household = {
-  filingStatus: 'mfj',
-  wages: 65000,
-  spouseWages: 40000,
-  selfEmploymentIncome: 0,
-  tipIncome: 0,
-  overtimeIncome: 0,
-  longTermGains: 0,
-  socialSecurityBenefits: 0,
-  age: 38,
-  spouseAge: 36,
-  childrenUnder17: 2,
-  otherDependents: 0,
-  state: 'OH',
-  healthCoverage: 'employer',
-  saltPaid: 0,
-  otherItemized: 0,
-}
+const DEFAULT_HOUSEHOLD: Household = PERSONAS[0].household
+
+/** Stamp shown in the trust line. Update when the dataset or baseline changes. */
+const MODEL_UPDATED = '2026-09-08'
 
 const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 
@@ -89,30 +76,55 @@ export default function App() {
   const singlePayerSelected = results.some((r) => r.result.effectiveCoverage === 'singlePayer')
   const closeExplain = () => setExplainFor(null)
 
+  const politicianCount = PLATFORMS.filter((p) => p.kind === 'politician').length
+  const sourceCount = new Set(PLATFORMS.flatMap((p) => p.positions.flatMap((x) => x.citations.map((c) => c.url)))).size
+
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-baseline justify-between px-4 py-4">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">What Would I Pay?</h1>
-            <p className="text-sm text-slate-500">
-              Compare how politicians' tax and healthcare platforms would change your household's bottom line.
-            </p>
+      <a href="#main" className="skip-link">
+        Skip to results
+      </a>
+      <header className="border-b border-rule bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-5">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+            <div>
+              <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink">What Would I Pay?</h1>
+              <p className="mt-1 max-w-2xl text-sm text-ink-2">
+                Enter your household, pick the politicians you want to compare, and see how each one's published tax and healthcare
+                platform would change the money you keep each year, and why.
+              </p>
+            </div>
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
+              <li>
+                Model updated <time dateTime={MODEL_UPDATED}>Sept 8, 2026</time>
+              </li>
+              <li>
+                {politicianCount} politicians · {sourceCount} sources
+              </li>
+              <li>
+                <a href="#method" className="underline hover:text-ink">
+                  Methodology
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/" className="underline hover:text-ink" rel="noreferrer">
+                  Source on GitHub
+                </a>
+              </li>
+            </ul>
           </div>
-          <a href="#method" className="text-xs text-slate-500 underline hover:text-slate-700">
-            Methodology & sources
-          </a>
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[340px_1fr]">
-        <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+      <main id="main" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[340px_1fr]">
+        <aside className="card rounded-card border border-rule bg-card p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
+          <h2 className="sr-only">Your household</h2>
           <HouseholdForm value={household} onChange={setHousehold} />
         </aside>
 
         <section className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-3 text-sm font-semibold text-slate-900">Who do you want to compare?</div>
+          <div className="card rounded-card border border-rule bg-card p-4">
+            <h2 className="mb-3 font-serif text-lg font-semibold text-ink">Who do you want to compare?</h2>
             <PlatformPicker platforms={PLATFORMS} selected={selected} onChange={setSelected} />
           </div>
 
@@ -144,12 +156,12 @@ export default function App() {
 
 function Methodology() {
   return (
-    <section id="method" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
-      <h2 className="mb-2 text-base font-semibold text-slate-900">How this works (and what it isn't)</h2>
-      <ul className="list-disc space-y-1.5 pl-5">
+    <section id="method" className="card rounded-card border border-rule bg-card p-5 text-sm text-ink-2">
+      <h2 className="mb-2 font-serif text-lg font-semibold text-ink">How this works (and what it isn't)</h2>
+      <ul className="max-w-prose list-disc space-y-1.5 pl-5">
         <li>
           <strong>Baseline</strong> is current federal law for tax year 2026 after the One Big Beautiful Bill Act (P.L. 119-21), using IRS,
-          SSA, CMS and HHS published parameters. Sources are listed in <code>src/data/baseline2026.ts</code>.
+          SSA, CMS and HHS published parameters. Every parameter is cited in the source file for the baseline.
         </li>
         <li>
           <strong>Each platform</strong> is a set of parameter changes layered onto the baseline. Where a politician has no stated position
@@ -175,6 +187,18 @@ function Methodology() {
           <strong>Not modeled:</strong> AMT, itemized deduction detail beyond SALT, most state credits, local income taxes, child ages (age-tiered
           credits use the base amount), employer-side payroll incidence, macroeconomic effects, wealth taxes, corporate and estate taxes, and
           what replaces the programs a platform would abolish (see the Libertarian caveat).
+        </li>
+        <li>
+          <strong>Confidence badges</strong> in the Positions panel: <em>High</em> means an explicit numeric proposal, sponsored bill, or signed law;
+          <em>Medium</em> a clear stated direction without numbers; <em>Low</em> an inference from votes or general statements; and
+          <em>Party default</em> means no personal position was found, so the party or lane baseline is applied.
+        </li>
+        <li>
+          <strong>Photos</strong> are official government portraits in the public domain, except where credited on the{' '}
+          <a href="/avatars/CREDITS.md" className="underline">
+            credits page
+          </a>
+          . Nobody depicted endorses this tool.
         </li>
         <li>
           This is a <strong>prototype for directional comparison</strong>, not tax advice. Platform positions reflect public statements and
