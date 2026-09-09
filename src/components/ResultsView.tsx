@@ -249,14 +249,22 @@ function Row({
   cost?: boolean
   baselineRow?: HouseholdResult
 }) {
+  const identical = !!baselineRow && rows.length > 2 && rows.every(({ result }) => Math.abs(get(result) - get(baselineRow)) < 1)
   return (
     <tr>
-      <td className="px-4 py-2 text-ink-2">{label}</td>
+      <td className="px-4 py-2 text-ink-2">
+        {label}
+        {identical && (
+          <span className="mt-0.5 block text-xs text-ink-3">
+            Same under every selected platform. Open <em>Why?</em> on a card to see which thresholds you don't reach.
+          </span>
+        )}
+      </td>
       {rows.map(({ platform, result }) => {
         const v = get(result)
         const d = baselineRow && platform ? v - get(baselineRow) : 0
         return (
-          <td key={result.platformId} className="px-4 py-2 text-right">
+          <td key={result.platformId} className={`px-4 py-2 text-right ${identical ? 'text-ink-3' : ''}`}>
             <div>{usd(v)}</div>
             {platform && baselineRow && Math.abs(d) >= 1 && (
               <div className="text-xs text-ink-2">
