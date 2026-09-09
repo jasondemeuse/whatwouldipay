@@ -19,8 +19,6 @@ interface Props {
   all: Platform[]
   onShowPositions: (platformId: string) => void
   onExplain: (platformId: string) => void
-  explaining: string | null
-  whyPanel: React.ReactNode
   /** Guess-first state lives in App so every surface can hide numbers together. */
   guessMode: boolean
   revealed: Record<string, boolean>
@@ -47,8 +45,6 @@ export function ResultsView({
   all,
   onShowPositions,
   onExplain,
-  explaining,
-  whyPanel,
   guessMode,
   revealed,
   onGuessModeChange,
@@ -205,11 +201,9 @@ export function ResultsView({
                     <button
                       type="button"
                       onClick={() => onExplain(platform.id)}
-                      aria-pressed={explaining === platform.id}
+                      aria-haspopup="dialog"
                       aria-label={`Why this number for ${platform.name}`}
-                      className={`rounded-md border px-2 py-0.5 text-xs transition-colors ${
-                        explaining === platform.id ? 'border-ink bg-ink text-card' : 'border-rule text-ink-2 hover:bg-paper-2'
-                      }`}
+                      className="rounded-md border border-rule px-2 py-0.5 text-xs text-ink-2 transition-colors hover:bg-paper-2"
                     >
                       Why?
                     </button>
@@ -237,8 +231,6 @@ export function ResultsView({
           )
         })}
       </div>
-
-      {whyPanel}
 
       {anyHidden && (
         <p className="text-sm text-ink-3">The comparison table and line items are hidden until you reveal your guesses.</p>

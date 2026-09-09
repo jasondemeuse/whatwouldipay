@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
 import type { Platform, PolicyArea, PolicyPosition } from '../engine/types'
 import { AREA_LABEL } from '../lib/labels'
+import { Dialog } from './Dialog'
 import { effectivePositions } from '../engine/calculate'
 import { SPENDING_CATEGORIES, fmtBillions, resolvedSpending, scorerLabel } from '../engine/spending'
 
@@ -18,57 +18,13 @@ const CONF: Record<PolicyPosition['confidence'], { label: string; cls: string; t
 }
 
 export function PositionsPanel({ platform, all, onClose }: Props) {
-  const panelRef = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const panel = panelRef.current
-    const focusables = () =>
-      Array.from(panel?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])
-    focusables()[0]?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
-      }
-      if (e.key === 'Tab') {
-        // Keep focus inside the dialog.
-        const els = focusables()
-        if (els.length === 0) return
-        const first = els[0]
-        const last = els[els.length - 1]
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault()
-          last.focus()
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault()
-          first.focus()
-        }
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.overflow = prev
-      window.removeEventListener('keydown', onKey)
-      opener?.focus?.()
-    }
-    // onClose is memoized by the caller; the drawer remounts per platform anyway.
-  }, [onClose])
   const order = Object.keys(AREA_LABEL) as PolicyArea[]
   const positions = [...effectivePositions(platform, all)].sort((a, b) => order.indexOf(a.area) - order.indexOf(b.area))
   const spending = resolvedSpending(platform, all)
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-ink/40" onClick={onClose}>
-      <aside
-        ref={panelRef}
-        className="h-full w-full max-w-xl overflow-y-auto bg-card shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`${platform.name} positions`}
-      >
+    <Dialog label={`${platform.name} positions`} onClose={onClose} variant="drawer">
+      <aside>
         <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-rule bg-card px-6 py-4">
           <div>
             <h2 className="font-serif text-xl font-semibold text-ink">{platform.name}</h2>
@@ -170,6 +126,6 @@ export function PositionsPanel({ platform, all, onClose }: Props) {
           )}
         </div>
       </aside>
-    </div>
+    </Dialog>
   )
 }

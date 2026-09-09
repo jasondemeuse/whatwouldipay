@@ -79,6 +79,14 @@ body {
   --viz-grid: var(--color-rule);
 }
 
+/* Tailwind v4 dropped the pointer cursor on buttons; every clickable control gets it back here. */
+:where(button, [role="button"], summary, select, label[for], input[type="checkbox"], input[type="radio"], input[type="range"]):not(:disabled) {
+  cursor: pointer;
+}
+:where(button, input):disabled {
+  cursor: not-allowed;
+}
+
 /* Focus: visible, 2px, offset, in the accent, only for keyboard/programmatic focus */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--color-accent);

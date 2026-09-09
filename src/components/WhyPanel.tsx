@@ -24,7 +24,7 @@ export function WhyPanel({ platform, attribution, onClose, onShowPositions }: Pr
   const [hover, setHover] = useState<number | null>(null)
 
   return (
-    <section className="viz-root card rounded-card border border-rule bg-card p-5" aria-label={`Why ${platform.name}'s number`}>
+    <section className="viz-root card rounded-t-card border border-rule bg-card p-5 sm:rounded-card">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-serif text-lg font-semibold text-ink">Why {usd(final.netIncome)} under {platform.name}?</h2>

@@ -4,6 +4,7 @@ import { PlatformPicker } from './components/PlatformPicker'
 import { ResultsView } from './components/ResultsView'
 import { PositionsPanel } from './components/PositionsPanel'
 import { WhyPanel } from './components/WhyPanel'
+import { Dialog } from './components/Dialog'
 import { LeverMatrix } from './components/LeverMatrix'
 import { AssumptionsPanel } from './components/AssumptionsPanel'
 import { Verdict } from './components/Verdict'
@@ -119,7 +120,7 @@ export default function App() {
   const panelPlatform = positionsFor ? PLATFORMS.find((p) => p.id === positionsFor) : undefined
   const explain = explainFor ? results.find((r) => r.platform.id === explainFor) : undefined
   const singlePayerSelected = results.some((r) => r.result.effectiveCoverage === 'singlePayer')
-  const closeExplain = () => setExplainFor(null)
+  const closeExplain = useCallback(() => setExplainFor(null), [])
 
   const isMethodology = route.startsWith('#/methodology')
   const householdLabel = `${household.filingStatus === 'mfj' ? 'Married couple' : household.filingStatus === 'hoh' ? 'Head of household' : 'Single filer'}, ${usdShort(
@@ -223,13 +224,7 @@ export default function App() {
             onReveal={(id) => setRevealed((r) => ({ ...r, [id]: true }))}
             onRevealAll={() => setRevealed(Object.fromEntries(results.map((r) => [r.platform.id, true])))}
             onShowPositions={setPositionsFor}
-            onExplain={(id) => setExplainFor(explainFor === id ? null : id)}
-            explaining={explainFor}
-            whyPanel={
-              explain ? (
-                <WhyPanel platform={explain.platform} attribution={explain.attribution} onClose={closeExplain} onShowPositions={setPositionsFor} />
-              ) : null
-            }
+            onExplain={setExplainFor}
           />
 
           <LeverMatrix rows={results} onShowPositions={setPositionsFor} onExplain={setExplainFor} />
@@ -245,6 +240,19 @@ export default function App() {
 
       {!isMethodology && results.length > 0 && (
         <ShareCard ref={shareCardRef} baseline={baseline} results={results} householdLabel={householdLabel} date={SITE.modelUpdatedLabel} url={url} />
+      )}
+      {explain && (
+        <Dialog label={`Why ${explain.platform.name}'s number`} onClose={closeExplain}>
+          <WhyPanel
+            platform={explain.platform}
+            attribution={explain.attribution}
+            onClose={closeExplain}
+            onShowPositions={(id) => {
+              closeExplain()
+              setPositionsFor(id)
+            }}
+          />
+        </Dialog>
       )}
       {panelPlatform && <PositionsPanel platform={panelPlatform} all={PLATFORMS} onClose={closePositions} />}
       {!isMethodology && results.length > 0 && !(guessMode && results.some((r) => !revealed[r.platform.id])) && (
