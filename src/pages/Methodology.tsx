@@ -3,6 +3,7 @@ import { BASELINE_2026 } from '../data/baseline2026'
 import { PLATFORMS } from '../data/platforms'
 import { CHANGELOG } from '../data/changelog'
 import { AREA_LABEL } from '../components/PositionsPanel'
+import { SPENDING_CATEGORIES, fmtBillions, scorerLabel } from '../engine/spending'
 import { usd, pct } from '../lib/format'
 
 interface Credit {
@@ -193,6 +194,45 @@ export function MethodologyPage() {
                     </li>
                   ))}
                 </ul>
+                {p.spending && p.spending.length > 0 && (
+                  <div className="mt-3">
+                    <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-3">Spending side</div>
+                    <ul className="divide-y divide-rule-2 text-sm">
+                      {p.spending.map((sp, i) => (
+                        <li key={i} className="grid gap-1 py-2 sm:grid-cols-[180px_1fr]">
+                          <div className="font-medium text-ink">
+                            {SPENDING_CATEGORIES.find((c) => c.id === sp.category)?.label}
+                            <span className="ml-1 text-xs font-normal capitalize text-ink-3">· {sp.direction} · {sp.confidence}</span>
+                          </div>
+                          <div className="text-ink-2">
+                            {sp.summary}
+                            {sp.openEnded && <span className="text-ink-3"> (open-ended authorization, no stated cost)</span>}
+                            {sp.cost10yr !== undefined && !sp.openEnded && (
+                              <span className="money text-ink-3">
+                                {' '}
+                                ({fmtBillions(sp.cost10yr)}
+                                {sp.window ? ` over ${sp.window}` : ' / 10 yrs'}
+                                {scorerLabel(sp) ? `, ${scorerLabel(sp)}` : ''})
+                              </span>
+                            )}
+                            {sp.citations.length > 0 && (
+                              <ul className="mt-1 space-y-0.5 text-xs">
+                                {sp.citations.map((c, j) => (
+                                  <li key={j}>
+                                    <a href={c.url} target="_blank" rel="noreferrer" className="text-accent underline hover:text-ink">
+                                      {c.label}
+                                    </a>
+                                    {c.date && <span className="ml-1 text-ink-3">({c.date})</span>}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {p.notes && p.notes.length > 0 && (
                   <ul className="mt-3 list-disc pl-5 text-xs text-ink-3">
                     {p.notes.map((n, i) => (

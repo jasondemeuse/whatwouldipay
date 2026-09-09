@@ -13,6 +13,7 @@ import { parse as parseUrl, permalink } from './lib/urlState'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ShareCard } from './components/ShareCard'
 import { MethodologyPage } from './pages/Methodology'
+import { BeyondPaycheck } from './components/BeyondPaycheck'
 import { applyPlatform, calculate, cloneParams } from './engine/calculate'
 import { attribute } from './engine/attribution'
 import { applyAssumptions, DEFAULT_ASSUMPTIONS } from './engine/assumptions'
@@ -197,6 +198,8 @@ export default function App() {
           />
 
           <LeverMatrix rows={results} onShowPositions={setPositionsFor} onExplain={setExplainFor} />
+
+          <BeyondPaycheck baseline={baseline} results={results} all={PLATFORMS} onShowPositions={setPositionsFor} />
 
           <AssumptionsPanel value={assumptions} onChange={setAssumptions} singlePayerSelected={singlePayerSelected} />
 

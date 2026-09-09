@@ -330,6 +330,32 @@ export type PolicyArea =
 
 export type Party = 'D' | 'R' | 'I' | 'L' | 'G'
 
+// ---------- Spending side (context, never summed into take-home) ----------
+
+export type SpendingCategory = 'defense' | 'health' | 'education' | 'safetyNet' | 'infrastructure' | 'immigration' | 'deficit'
+
+/** Who produced a budget estimate. Drives the authority label in the UI; never render tiers as equals. */
+export type Scorer = 'CBO' | 'JCT' | 'SSA-OACT' | 'CMS-OACT' | 'OMB' | 'thinkTank' | 'sponsor' | 'billText'
+
+export interface SpendingPosition {
+  category: SpendingCategory
+  /** Direction of federal spending in this category. For `deficit`, "more" means more borrowing. */
+  direction: 'more' | 'less' | 'mixed' | 'none'
+  summary: string
+  /** Budget effect in billions of dollars over `window` where scored: positive = more spending / larger deficit. */
+  cost10yr?: number
+  /** Who produced the estimate. */
+  scorer?: Scorer
+  /** Name of the think tank when scorer is 'thinkTank'. */
+  scorerName?: string
+  /** Scoring window, e.g. "2025–2034". */
+  window?: string
+  /** "Such sums as may be necessary" authorizations: render as "no stated cost", never $0. */
+  openEnded?: boolean
+  confidence: Confidence
+  citations: Citation[]
+}
+
 export interface Platform {
   id: string
   name: string
@@ -344,6 +370,8 @@ export interface Platform {
   positions: PolicyPosition[]
   /** Positions on the record but with no household-level effect (corporate rate, estate tax). */
   notes?: string[]
+  /** Spending-side commitments by category; inherited from `inheritsFrom` per category when absent. */
+  spending?: SpendingPosition[]
 }
 
 // ---------- Results ----------

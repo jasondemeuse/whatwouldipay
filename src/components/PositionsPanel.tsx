@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Platform, PolicyArea, PolicyPosition } from '../engine/types'
 import { effectivePositions } from '../engine/calculate'
+import { SPENDING_CATEGORIES, fmtBillions, resolvedSpending, scorerLabel } from '../engine/spending'
 
 interface Props {
   platform: Platform
@@ -92,6 +93,7 @@ export function PositionsPanel({ platform, all, onClose }: Props) {
   const positions = effectivePositions(platform, all)
   const order = Object.keys(AREA_LABEL) as PolicyArea[]
   positions.sort((a, b) => order.indexOf(a.area) - order.indexOf(b.area))
+  const spending = resolvedSpending(platform, all)
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-ink/40" onClick={onClose}>
@@ -152,6 +154,46 @@ export function PositionsPanel({ platform, all, onClose }: Props) {
               )
             })}
           </ul>
+          {spending.length > 0 && (
+            <div>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-3">Spending side (not in the take-home total)</div>
+              <ul className="space-y-2">
+                {spending.map((sp) => (
+                  <li key={sp.category} className={`rounded-lg border p-3 text-sm ${sp.inherited ? 'border-dashed border-rule bg-paper-2/60' : 'border-rule'}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-semibold text-ink">{SPENDING_CATEGORIES.find((c) => c.id === sp.category)?.label}</div>
+                      <span className="text-xs text-ink-3">
+                        {sp.direction === 'none' ? 'no stated position' : sp.direction}
+                        {sp.openEnded && ' · open-ended, no stated cost'}
+                        {sp.cost10yr !== undefined && !sp.openEnded && (
+                          <span className="money">
+                            {' '}
+                            · {fmtBillions(sp.cost10yr)}
+                            {sp.window ? ` over ${sp.window}` : ' / 10 yrs'}
+                            {scorerLabel(sp) ? ` (${scorerLabel(sp)})` : ''}
+                          </span>
+                        )}
+                        {sp.inherited && ` · ${sp.source.shortName} default`}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-ink-2">{sp.summary}</p>
+                    {sp.citations.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-xs">
+                        {sp.citations.map((c, i) => (
+                          <li key={i}>
+                            <a href={c.url} target="_blank" rel="noreferrer" className="text-accent underline hover:text-ink">
+                              {c.label}
+                            </a>
+                            {c.date && <span className="ml-1 text-ink-3">({c.date})</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {platform.notes && platform.notes.length > 0 && (
             <div>
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-3">Also on the record</div>
