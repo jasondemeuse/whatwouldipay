@@ -57,10 +57,10 @@ export function PositionsPanel({ platform, all, onClose }: Props) {
         <div className="space-y-5 px-6 py-5">
           <p className="text-sm text-slate-700">{platform.description}</p>
           <ul className="space-y-4">
-            {positions.map((pos) => {
+            {positions.map((pos, i) => {
               const c = CONF[pos.confidence]
               return (
-                <li key={pos.area} className="rounded-lg border border-slate-200 p-3">
+                <li key={`${pos.area}-${i}`} className={`rounded-lg border p-3 ${pos.inherited ? 'border-dashed border-slate-200 bg-slate-50/60' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-sm font-semibold text-slate-900">{AREA_LABEL[pos.area]}</div>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${c.cls}`} title={c.title}>
@@ -80,8 +80,14 @@ export function PositionsPanel({ platform, all, onClose }: Props) {
                       ))}
                     </ul>
                   )}
-                  {!pos.apply && !pos.inherited && (
+                  {!pos.apply && !pos.inherited && !pos.holdsCurrentLaw && (
                     <p className="mt-1 text-xs italic text-slate-400">Recorded for context; no direct effect on this calculator.</p>
+                  )}
+                  {pos.holdsCurrentLaw && (
+                    <p className="mt-1 text-xs italic text-slate-400">Current law kept; the party default is not applied here.</p>
+                  )}
+                  {pos.inherited && pos.apply && (
+                    <p className="mt-1 text-xs italic text-slate-400">Applied from the party/lane baseline because no personal position was found.</p>
                   )}
                 </li>
               )

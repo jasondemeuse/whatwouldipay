@@ -6,6 +6,7 @@ import type {
   HouseholdResult,
   LineItem,
   Platform,
+  PolicyArea,
   PolicyParams,
 } from './types'
 import { computeStateTax } from './stateTax'
@@ -57,12 +58,16 @@ export function applyPlatform(baseline: PolicyParams, platform: Platform, all: P
   const parent = platform.inheritsFrom ? all.find((x) => x.id === platform.inheritsFrom) : undefined
   if (parent) {
     for (const pos of parent.positions) {
-      const overridden = platform.positions.some((own) => own.area === pos.area)
-      if (!overridden) pos.apply?.(params)
+      if (!overridesParent(platform, pos.area)) pos.apply?.(params)
     }
   }
   for (const pos of platform.positions) pos.apply?.(params)
   return params
+}
+
+/** A child position overrides the parent's effect only if it changes parameters itself or explicitly holds current law. */
+function overridesParent(platform: Platform, area: PolicyArea): boolean {
+  return platform.positions.some((own) => own.area === area && (own.apply !== undefined || own.holdsCurrentLaw === true))
 }
 
 /** Returns the effective positions for a platform, with party fallbacks marked `inherited`. */
@@ -71,7 +76,8 @@ export function effectivePositions(platform: Platform, all: Platform[]) {
   const own = platform.positions
   const inherited = parent
     ? parent.positions
-        .filter((pos) => !own.some((o) => o.area === pos.area))
+        // Show the party default when the politician has nothing on the area, or only a note that lets it apply.
+        .filter((pos) => !own.some((o) => o.area === pos.area) || (pos.apply !== undefined && !overridesParent(platform, pos.area)))
         .map((pos) => ({ ...pos, inherited: true, confidence: 'default' as const }))
     : []
   return [...own, ...inherited]
@@ -157,6 +163,10 @@ export function calculate(h: Household, p: PolicyParams, platformId: string): Ho
     if (allowed > 0) breakdown.push({ label: 'Senior deduction', amount: allowed })
   }
 
+  if (p.incomeTax.dependentExemption > 0) {
+    deduction += p.incomeTax.dependentExemption * (h.childrenUnder17 + h.otherDependents)
+  }
+
   const taxableIncome = Math.max(0, agi - deduction)
 
   // ----- Ordinary income tax + preferential gains -----
@@ -221,7 +231,7 @@ export function calculate(h: Household, p: PolicyParams, platformId: string): Ho
     const reduced = credit - Math.max(0, income - phaseOutStart) * eitcTier.phaseOutRate
     eitc = clamp(reduced, 0, maxCredit)
     // Childless EITC has an age window (25–64) under current law
-    if (h.childrenUnder17 === 0 && (h.age < 25 || h.age > 64)) eitc = 0
+    if (h.childrenUnder17 === 0 && (h.age < p.eitc.childlessMinAge || h.age > p.eitc.childlessMaxAge)) eitc = 0
   }
 
   const nonRefundableCredits = ctcNonRefundable
@@ -244,7 +254,10 @@ export function calculate(h: Household, p: PolicyParams, platformId: string): Ho
   const health = computeHealthcare(h, p, agi, warnings)
 
   // ----- Tariffs -----
-  const tariffCost = Math.min(grossIncome * p.tariffs.pctOfIncome, p.tariffs.maxAnnualCost) * p.tariffs.multiplier
+  const tariffCost =
+    Math.min(grossIncome * p.tariffs.pctOfIncome, p.tariffs.maxAnnualCost) * p.tariffs.multiplier -
+    p.tariffs.rebatePerPerson * householdSize(h)
+  warnings.push(...p.caveats)
 
   const netIncome = grossIncome - federalIncomeTax - payrollTax - stateIncomeTax - health.cost - tariffCost
 

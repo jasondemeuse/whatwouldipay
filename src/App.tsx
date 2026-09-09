@@ -128,13 +128,20 @@ function Methodology() {
           statutory subsidy schedule. Medicaid work requirements are shown as an expected cost using CBO's coverage-loss projection.
         </li>
         <li>
-          <strong>Tariffs</strong> are included as an estimated consumer cost per household (Yale Budget Lab) scaled by income and by each
-          platform's stance (repeal / keep / expand).
+          <strong>Tariffs</strong> are included as an estimated consumer cost. After the Supreme Court struck the IEEPA tariffs in February
+          2026, the surviving Section 232/301 tariffs cost about $840 per household (Tax Foundation); we model that as 1% of income capped at
+          $3,000, then scale by each platform's stance: repeal ×0.25, targeted ×0.5, keep ×1, expand ×1.25. Those multipliers are our
+          judgment, not sourced figures. Tariff rebate proposals (Hawley) are subtracted per household member.
         </li>
         <li>
-          <strong>Not modeled:</strong> AMT, itemized deduction detail beyond SALT, most state credits, local income taxes, employer-side
-          payroll incidence (except where noted), macroeconomic effects, and proposals that only touch incomes above ~$10M unless they're
-          explicit rate changes.
+          <strong>Medicare for All</strong> platforms replace your premiums and typical out-of-pocket with the income-based contribution in
+          Sanders' financing options (4% of income above about $29,000). The 7.5% employer payroll premium is assumed not to pass through to
+          your wages, matching how we treat employer premiums today.
+        </li>
+        <li>
+          <strong>Not modeled:</strong> AMT, itemized deduction detail beyond SALT, most state credits, local income taxes, child ages (age-tiered
+          credits use the base amount), employer-side payroll incidence, macroeconomic effects, wealth taxes, corporate and estate taxes, and
+          what replaces the programs a platform would abolish (see the Libertarian caveat).
         </li>
         <li>
           This is a <strong>prototype for directional comparison</strong>, not tax advice. Platform positions reflect public statements and

@@ -57,6 +57,7 @@ export const BASELINE_2026: PolicyParams = {
     seniorDeduction: { amount: 6000, phaseoutStart: by(75000, 150000, 75000, 75000), phaseoutRate: 0.06 },
     surtaxes: [],
     socialSecurityBenefitTaxable: true,
+    dependentExemption: 0,
   },
 
   ctc: {
@@ -81,6 +82,8 @@ export const BASELINE_2026: PolicyParams = {
     ],
     investmentIncomeLimit: 12200,
     scale: 1,
+    childlessMinAge: 25,
+    childlessMaxAge: 64,
   },
 
   deductions: {
@@ -130,12 +133,15 @@ export const BASELINE_2026: PolicyParams = {
   },
 
   tariffs: {
-    // [YALE-T] Yale Budget Lab estimates current tariffs cost the average household roughly $2,000–$2,500/yr,
-    // regressive as a share of income (~2.5–3% for the lowest decile, ~1% for the top). Modeled here as
-    // 1.5% of gross income capped at $5,000. APPROXIMATION — see docs/research for the caveat.
-    pctOfIncome: 0.015,
-    maxAnnualCost: 5000,
+    // [TF-TARIFF] After the Supreme Court struck the IEEPA tariffs (Learning Resources v. Trump, 2026-02-20), the
+    // surviving Section 232/301/201 tariffs cost ~$840 per household in 2026 (was ~$1,000 in 2025); average
+    // effective rate 7.2%. Modeled as 1.0% of gross income capped at $3,000, so a median household lands near $840.
+    // Tariffs are regressive as a share of income [YALE-T]; the flat percentage is an approximation.
+    // https://taxfoundation.org/research/all/federal/trump-tariffs-trade-war/ (updated 2026-09-02)
+    pctOfIncome: 0.01,
+    maxAnnualCost: 3000,
     multiplier: 1,
+    rebatePerPerson: 0,
   },
 
   aca: {
@@ -245,6 +251,7 @@ export const BASELINE_2026: PolicyParams = {
       source: 'https://www.federalregister.gov/documents/2026/01/15/2026-00755/annual-update-of-the-hhs-poverty-guidelines',
     },
   },
+  caveats: [],
 }
 
 /** Enhanced (ARPA/IRA, 2021–2025) applicable-percentage schedule, for "restore the enhanced credits" platforms. IRC §36B(b)(3)(A)(iii). */

@@ -68,6 +68,8 @@ export interface IncomeTaxParams {
   surtaxes: Array<{ rate: number; over: ByFilingStatus<number> }>
   /** Fraction of Social Security benefits included in income (0 = exempt). Simplified. */
   socialSecurityBenefitTaxable: boolean
+  /** Per-dependent exemption/deduction (0 under current law; used by flat-tax plans). */
+  dependentExemption: number
 }
 
 export interface CtcParams {
@@ -102,6 +104,9 @@ export interface EitcParams {
   investmentIncomeLimit: number
   /** Multiplier applied to max credit (for "expand EITC by X%" proposals). */
   scale: number
+  /** Age window for the childless credit (current law 25–64). */
+  childlessMinAge: number
+  childlessMaxAge: number
 }
 
 export interface DeductionParams {
@@ -152,6 +157,8 @@ export interface TariffParams {
   maxAnnualCost: number
   /** Multiplier applied to current-law tariff cost: 0 = repeal all, 1 = current, >1 = expand. */
   multiplier: number
+  /** Tariff-funded rebate paid per household member (e.g. Hawley's American Worker Rebate Act). */
+  rebatePerPerson: number
 }
 
 export interface AcaParams {
@@ -244,6 +251,8 @@ export interface PolicyParams {
    * (45 CFR 155.305(f)); Medicaid eligibility uses the 2026 table.
    */
   fpl: { aca: FplTable; medicaid: FplTable }
+  /** Platform-level caveats surfaced to the user as warnings (e.g. "funding side not modeled"). */
+  caveats: string[]
 }
 
 export interface FplTable {
@@ -279,6 +288,12 @@ export interface PolicyPosition {
   apply?: (p: PolicyParams) => void
   /** If true, this position is a fallback inherited from the party baseline. */
   inherited?: boolean
+  /**
+   * For positions without `apply`: if true, the politician's stance is "keep current law" and the party
+   * default for this area must NOT be applied. If false/undefined, an informational note still lets the
+   * party default apply (and the UI shows both).
+   */
+  holdsCurrentLaw?: boolean
 }
 
 export type PolicyArea =
