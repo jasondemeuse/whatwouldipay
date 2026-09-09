@@ -8,6 +8,7 @@ import type {
   Platform,
   PolicyArea,
   PolicyParams,
+  PolicyPosition,
 } from './types'
 import { computeStateTax } from './stateTax'
 import { taxFromBrackets } from './brackets'
@@ -52,34 +53,59 @@ export function cloneParams(p: PolicyParams): PolicyParams {
   return structuredClone(p)
 }
 
+/** Inheritance chain from the root baseline down to (but excluding) the platform itself. */
+function ancestors(platform: Platform, all: Platform[]): Platform[] {
+  const chain: Platform[] = []
+  let cur = platform
+  const seen = new Set<string>([platform.id])
+  while (cur.inheritsFrom) {
+    const parent = all.find((x) => x.id === cur.inheritsFrom)
+    if (!parent || seen.has(parent.id)) break
+    chain.unshift(parent)
+    seen.add(parent.id)
+    cur = parent
+  }
+  return chain
+}
+
 export function applyPlatform(baseline: PolicyParams, platform: Platform, all: Platform[]): PolicyParams {
   const params = cloneParams(baseline)
-  // Inherited party positions first, then the politician's own overrides.
-  const parent = platform.inheritsFrom ? all.find((x) => x.id === platform.inheritsFrom) : undefined
-  if (parent) {
-    for (const pos of parent.positions) {
-      if (!overridesParent(platform, pos.area)) pos.apply?.(params)
+  const chain = [...ancestors(platform, all), platform]
+  // Apply root-most first; a position applies only if no descendant overrides that area.
+  chain.forEach((node, i) => {
+    const descendants = chain.slice(i + 1)
+    for (const pos of node.positions) {
+      if (!descendants.some((d) => overridesParent(d, pos.area))) pos.apply?.(params)
     }
-  }
-  for (const pos of platform.positions) pos.apply?.(params)
+  })
   return params
 }
 
-/** A child position overrides the parent's effect only if it changes parameters itself or explicitly holds current law. */
+/** A child position overrides an ancestor's effect only if it changes parameters itself or explicitly holds current law. */
 function overridesParent(platform: Platform, area: PolicyArea): boolean {
   return platform.positions.some((own) => own.area === area && (own.apply !== undefined || own.holdsCurrentLaw === true))
 }
 
-/** Returns the effective positions for a platform, with party fallbacks marked `inherited`. */
+/** Effective positions for a platform: its own, plus ancestor fallbacks marked `inherited` (nearest ancestor wins per area). */
 export function effectivePositions(platform: Platform, all: Platform[]) {
-  const parent = platform.inheritsFrom ? all.find((x) => x.id === platform.inheritsFrom) : undefined
   const own = platform.positions
-  const inherited = parent
-    ? parent.positions
-        // Show the party default when the politician has nothing on the area, or only a note that lets it apply.
-        .filter((pos) => !own.some((o) => o.area === pos.area) || (pos.apply !== undefined && !overridesParent(platform, pos.area)))
-        .map((pos) => ({ ...pos, inherited: true, confidence: 'default' as const }))
-    : []
+  const chain = ancestors(platform, all).reverse() // nearest first
+  const inherited: PolicyPosition[] = []
+  const covered = new Set<PolicyArea>()
+  for (const node of chain) {
+    for (const pos of node.positions) {
+      if (covered.has(pos.area)) continue
+      const ownHere = own.some((o) => o.area === pos.area)
+      // Show the ancestor's position when the politician has nothing on the area, or only a note that lets it apply.
+      const show = !ownHere || (pos.apply !== undefined && !overridesParent(platform, pos.area))
+      if (show) {
+        inherited.push({ ...pos, inherited: true, confidence: 'default' })
+        covered.add(pos.area)
+      } else if (ownHere) {
+        covered.add(pos.area)
+      }
+    }
+  }
   return [...own, ...inherited]
 }
 

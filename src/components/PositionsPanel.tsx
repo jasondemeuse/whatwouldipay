@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { Platform, PolicyArea, PolicyPosition } from '../engine/types'
 import { effectivePositions } from '../engine/calculate'
 
@@ -33,6 +34,16 @@ const CONF: Record<PolicyPosition['confidence'], { label: string; cls: string; t
 }
 
 export function PositionsPanel({ platform, all, onClose }: Props) {
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
   const positions = effectivePositions(platform, all)
   const order = Object.keys(AREA_LABEL) as PolicyArea[]
   positions.sort((a, b) => order.indexOf(a.area) - order.indexOf(b.area))
