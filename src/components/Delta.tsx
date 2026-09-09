@@ -1,9 +1,11 @@
 import { usd } from '../lib/format'
+import { MoneyDelta } from './Money'
 
 /**
  * Signed money change with redundant encoding: color, sign, and a glyph, so gain/loss never depends on color alone.
+ * `animate` swaps the static text for a NumberFlow transition (use on headline figures, not dense tables).
  */
-export function Delta({ v, muted = false }: { v: number; muted?: boolean }) {
+export function Delta({ v, muted = false, animate = false }: { v: number; muted?: boolean; animate?: boolean }) {
   const zero = Math.abs(v) < 0.5
   const gain = v >= 0
   const color = zero ? 'var(--color-ink-3)' : gain ? 'var(--color-gain)' : 'var(--color-loss)'
@@ -15,7 +17,7 @@ export function Delta({ v, muted = false }: { v: number; muted?: boolean }) {
         {glyph}
       </span>
       <span className="sr-only">{label} </span>
-      {zero ? usd(0) : usd(v, { sign: true })}
+      {animate ? <MoneyDelta value={zero ? 0 : v} /> : zero ? usd(0) : usd(v, { sign: true })}
     </span>
   )
 }

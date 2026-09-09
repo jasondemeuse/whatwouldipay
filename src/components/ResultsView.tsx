@@ -3,6 +3,9 @@ import type { HouseholdResult, Platform } from '../engine/types'
 import { usd, pct } from '../lib/format'
 import { Delta } from './Delta'
 import { Avatar } from './Avatar'
+import { Money } from './Money'
+
+type SortMode = 'impact' | 'selection' | 'name'
 
 interface Props {
   baseline: HouseholdResult
@@ -25,11 +28,42 @@ const COVERAGE_LABEL: Record<string, string> = {
 
 export function ResultsView({ baseline, results, onShowPositions, onExplain, explaining, whyPanel }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
-  const rows = [{ platform: null as Platform | null, result: baseline }, ...results]
+  const [sort, setSort] = useState<SortMode>('impact')
+  const sorted = [...results].sort((a, b) => {
+    if (sort === 'impact') return b.result.netIncome - a.result.netIncome
+    if (sort === 'name') return a.platform.name.localeCompare(b.platform.name)
+    return 0
+  })
+  const rows = [{ platform: null as Platform | null, result: baseline }, ...sorted]
   const maxAbsDelta = Math.max(1, ...results.map((r) => Math.abs(r.result.netIncome - baseline.netIncome)))
 
   return (
     <div className="space-y-6">
+      {results.length > 1 && (
+        <div className="no-print flex items-center justify-end gap-2 text-xs text-ink-3">
+          <span id="sort-label">Order</span>
+          <div role="radiogroup" aria-labelledby="sort-label" className="inline-flex rounded-md border border-rule bg-card p-0.5">
+            {(
+              [
+                ['impact', 'By what you keep'],
+                ['selection', 'As selected'],
+                ['name', 'By name'],
+              ] as Array<[SortMode, string]>
+            ).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={sort === mode}
+                onClick={() => setSort(mode)}
+                className={`rounded px-2 py-0.5 font-medium transition-colors ${sort === mode ? 'bg-ink text-card' : 'text-ink-2 hover:bg-paper-2'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Headline cards */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {rows.map(({ platform, result }) => {
@@ -55,10 +89,10 @@ export function ResultsView({ baseline, results, onShowPositions, onExplain, exp
               </div>
               <div className="mt-3">
                 <div className="text-xs uppercase tracking-wide text-ink-3">Money left after taxes & healthcare</div>
-                <div className="money text-2xl font-semibold tracking-tight text-ink">{usd(result.netIncome)}</div>
+                <Money value={result.netIncome} className="block text-2xl font-semibold tracking-tight text-ink" />
                 {!isBase && (
                   <div className="mt-1 text-sm font-semibold text-ink">
-                    <Delta v={delta} /> <span className="font-normal text-ink-2">vs. current law</span>
+                    <Delta v={delta} animate /> <span className="font-normal text-ink-2">vs. current law</span>
                     <span className="money ml-1 font-normal text-ink-3">
                       ({delta >= 0 ? '+' : '−'}{usd(Math.abs(delta) / 12)}/mo)
                     </span>

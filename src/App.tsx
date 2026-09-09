@@ -6,6 +6,10 @@ import { PositionsPanel } from './components/PositionsPanel'
 import { WhyPanel } from './components/WhyPanel'
 import { LeverMatrix } from './components/LeverMatrix'
 import { AssumptionsPanel } from './components/AssumptionsPanel'
+import { Verdict } from './components/Verdict'
+import { ShareBar } from './components/ShareBar'
+import { MobileSummary } from './components/MobileSummary'
+import { parse as parseUrl, permalink } from './lib/urlState'
 import { applyPlatform, calculate, cloneParams } from './engine/calculate'
 import { attribute } from './engine/attribution'
 import { applyAssumptions, DEFAULT_ASSUMPTIONS } from './engine/assumptions'
@@ -23,14 +27,19 @@ const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 
 const STORAGE_KEY = 'wwip:v1'
 
+const PLATFORM_IDS = new Set(PLATFORMS.map((p) => p.id))
+
+/** Initial state: URL beats saved state beats defaults. */
 function load(): { household: Household; selected: string[]; assumptions: Assumptions } | null {
+  const fromUrl = parseUrl(window.location.search, DEFAULT_HOUSEHOLD, PLATFORM_IDS)
+  if (fromUrl) return fromUrl
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
     return {
       household: { ...DEFAULT_HOUSEHOLD, ...parsed.household },
-      selected: parsed.selected ?? DEFAULT_SELECTION,
+      selected: (parsed.selected ?? DEFAULT_SELECTION).filter((id: string) => PLATFORM_IDS.has(id)),
       assumptions: { ...DEFAULT_ASSUMPTIONS, ...parsed.assumptions },
     }
   } catch {
@@ -46,13 +55,20 @@ export default function App() {
   const [positionsFor, setPositionsFor] = useState<string | null>(null)
   const [explainFor, setExplainFor] = useState<string | null>(null)
 
+  const url = useMemo(() => permalink({ household, selected, assumptions }, DEFAULT_HOUSEHOLD), [household, selected, assumptions])
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ household, selected, assumptions }))
     } catch {
       /* ignore */
     }
-  }, [household, selected, assumptions])
+    // Keep the address bar in sync so the current view is always a permalink (debounced; no history spam).
+    const t = setTimeout(() => {
+      if (window.location.href !== url) window.history.replaceState(null, '', url)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [household, selected, assumptions, url])
 
   const baseline = useMemo(
     () => calculate(household, applyAssumptions(cloneParams(BASELINE_2026), assumptions), 'baseline'),
@@ -116,7 +132,7 @@ export default function App() {
         </div>
       </header>
 
-      <main id="main" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[340px_1fr]">
+      <main id="main" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 pb-24 lg:grid-cols-[340px_1fr] lg:pb-6">
         <aside className="card rounded-card border border-rule bg-card p-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
           <h2 className="sr-only">Your household</h2>
           <HouseholdForm value={household} onChange={setHousehold} />
@@ -127,6 +143,16 @@ export default function App() {
             <h2 className="mb-3 font-serif text-lg font-semibold text-ink">Who do you want to compare?</h2>
             <PlatformPicker platforms={PLATFORMS} selected={selected} onChange={setSelected} />
           </div>
+
+          <section className="card rounded-card border border-rule bg-card p-5" aria-labelledby="verdict-h">
+            <h2 id="verdict-h" className="sr-only">
+              Summary
+            </h2>
+            <Verdict baseline={baseline} results={results} />
+            <div className="mt-3 border-t border-rule-2 pt-3">
+              <ShareBar url={url} title="What Would I Pay?" />
+            </div>
+          </section>
 
           <ResultsView
             baseline={baseline}
@@ -150,6 +176,7 @@ export default function App() {
       </main>
 
       {panelPlatform && <PositionsPanel platform={panelPlatform} all={PLATFORMS} onClose={() => setPositionsFor(null)} />}
+      {results.length > 0 && <MobileSummary baseline={baseline} results={results} />}
     </div>
   )
 }
