@@ -140,7 +140,7 @@ export function SimpleFlow({
 
   return (
     <div className="simple-flow text-lg text-ink">
-      <main id="main" className={`mx-auto max-w-3xl px-4 pt-8 sm:pt-12 ${step === 'welcome' ? 'pb-12' : 'pb-32'}`}>
+      <main id="main" className={`mx-auto max-w-3xl px-4 sm:pt-12 ${step === 'welcome' ? 'pb-12 pt-6' : 'pb-32 pt-8'}`}>
         {step === 'welcome' && <Welcome ref={headingRef} onStart={() => go('household')} onExample={showExample} />}
 
         {step === 'household' && (
@@ -338,29 +338,29 @@ const Welcome = forwardRef<HTMLHeadingElement, { onStart: () => void; onExample:
     { icon: 'chart', text: 'See what you would keep, what you would get, and what it costs the budget.' },
   ]
   return (
-    <section className="flex min-h-[calc(100vh-9rem)] flex-col justify-center">
-      <p className="text-base font-semibold uppercase tracking-wide text-ink-3">Election 2028</p>
-      <h1 ref={ref} tabIndex={-1} className="mt-2 font-serif text-4xl font-semibold leading-tight tracking-tight outline-none sm:text-5xl">
+    <section className="flex flex-col justify-center sm:min-h-[calc(100vh-9rem)]">
+      <p className="text-sm font-semibold uppercase tracking-wide text-ink-3 sm:text-base">Election 2028</p>
+      <h1 ref={ref} tabIndex={-1} className="mt-1 font-serif text-3xl font-semibold leading-tight tracking-tight outline-none sm:mt-2 sm:text-5xl">
         What would each candidate's plan cost you?
       </h1>
-      <p className="mt-5 text-xl text-ink-2">
+      <p className="mt-4 text-lg text-ink-2 sm:mt-5 sm:text-xl">
         We take the tax and health care plans that 2028 presidential hopefuls have actually published, run them against your household, and
         show what changes for you. Every number links to its source.
       </p>
-      <ol className="mt-7 space-y-3">
+      <ol className="mt-5 space-y-2.5 sm:mt-7 sm:space-y-3">
         {steps.map((s, i) => (
-          <li key={s.icon} className="flex items-center gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink">
+          <li key={s.icon} className="flex items-center gap-3 sm:gap-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink sm:h-11 sm:w-11">
               <Icon name={s.icon} className="h-6 w-6" />
             </span>
-            <span className="text-lg text-ink-2">
+            <span className="text-base text-ink-2 sm:text-lg">
               <span className="sr-only">Step {i + 1}: </span>
               {s.text}
             </span>
           </li>
         ))}
       </ol>
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={onStart}
@@ -376,7 +376,7 @@ const Welcome = forwardRef<HTMLHeadingElement, { onStart: () => void; onExample:
           Show me an example first
         </button>
       </div>
-      <p className="mt-8 text-base text-ink-3">
+      <p className="mt-6 text-sm text-ink-3 sm:mt-8 sm:text-base">
         Free and open source. Nothing you type leaves your device. Not affiliated with any campaign or party. Tax year 2026, updated{' '}
         {SITE.modelUpdatedLabel}.{' '}
         <a href="#/methodology" className="underline hover:text-ink">
