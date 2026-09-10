@@ -18,6 +18,7 @@ import { ShareCard } from './components/ShareCard'
 import { MethodologyPage } from './pages/Methodology'
 import { BeyondPaycheck } from './components/BeyondPaycheck'
 import { applyPlatform, calculate, cloneParams } from './engine/calculate'
+import { whatYouGet } from './engine/benefits'
 import { attribute } from './engine/attribution'
 import { applyAssumptions, DEFAULT_ASSUMPTIONS } from './engine/assumptions'
 import type { Assumptions, Household } from './engine/types'
@@ -130,17 +131,20 @@ export default function App() {
     [household, assumptions],
   )
   const results = useMemo(() => {
-    const baselineKey = JSON.stringify(applyAssumptions(cloneParams(BASELINE_2026), assumptions))
+    const baseParams = applyAssumptions(cloneParams(BASELINE_2026), assumptions)
+    const baselineKey = JSON.stringify(baseParams)
     const rows = selected
       .map((id) => PLATFORMS.find((p) => p.id === id))
       .filter((p): p is NonNullable<typeof p> => !!p)
       .map((platform) => {
         const params = applyAssumptions(applyPlatform(BASELINE_2026, platform, PLATFORMS), assumptions)
+        const result = calculate(household, params, platform.id)
         return {
           platform,
           key: JSON.stringify(params),
-          result: calculate(household, params, platform.id),
+          result,
           attribution: attribute(household, BASELINE_2026, platform, PLATFORMS, assumptions),
+          benefits: whatYouGet({ household, baseline, result, baseParams, params }, platform, PLATFORMS),
         }
       })
     // Flag platforms whose modeled parameters are identical to current law or to an earlier-selected platform.
@@ -149,7 +153,7 @@ export default function App() {
       const sameAs = r.key === baselineKey ? 'baseline' : twin?.platform.name
       return { ...r, sameAs }
     })
-  }, [household, selected, assumptions])
+  }, [household, selected, assumptions, baseline])
 
   const panelPlatform = positionsFor ? PLATFORMS.find((p) => p.id === positionsFor) : undefined
   const explain = explainFor ? results.find((r) => r.platform.id === explainFor) : undefined

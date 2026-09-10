@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import type { Attribution } from '../engine/attribution'
-import type { FilingStatus, HealthCoverage, Household, HouseholdResult, Platform } from '../engine/types'
+import type { BenefitItem, FilingStatus, HealthCoverage, Household, HouseholdResult, Platform } from '../engine/types'
 import { STATE_LIST } from '../data/states'
 import { PERSONAS } from '../data/personas'
 import { AREA_PHRASE, PARTY_DOT, PARTY_NAME, parseMoney } from '../lib/labels'
@@ -16,6 +16,7 @@ interface Row {
   platform: Platform
   result: HouseholdResult
   attribution: Attribution
+  benefits: BenefitItem[]
   sameAs?: string
 }
 
@@ -662,7 +663,7 @@ function ResultCard({
   onShowPositions: (id: string) => void
   muted?: boolean
 }) {
-  const { platform, result, attribution, sameAs } = row
+  const { platform, result, attribution, benefits, sameAs } = row
   const delta = result.netIncome - baseline.netIncome
   const top = [...attribution.steps].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0]
   const reason = sameAs
@@ -716,6 +717,7 @@ function ResultCard({
           </ul>
         </div>
       </div>
+      <WhatChanges items={benefits} platform={platform} />
       <div className="flex flex-wrap gap-2 border-t border-rule-2 px-4 py-2.5">
         <button type="button" onClick={() => onExplain(platform.id)} aria-haspopup="dialog" className="min-h-11 rounded-lg border border-rule px-4 text-base font-medium text-ink hover:bg-paper-2">
           Why this number?
@@ -730,6 +732,52 @@ function ResultCard({
         </button>
       </div>
     </li>
+  )
+}
+
+const KIND: Record<BenefitItem['kind'], { glyph: string; cls: string; label: string }> = {
+  gain: { glyph: '✓', cls: 'text-gain', label: 'you gain' },
+  loss: { glyph: '✕', cls: 'text-loss', label: 'you lose' },
+  change: { glyph: '•', cls: 'text-ink-3', label: 'changes' },
+}
+
+/** Concrete consequences for this household, beyond the dollar figure; each declared item links its source. */
+function WhatChanges({ items, platform }: { items: BenefitItem[]; platform: Platform }) {
+  const order: Record<BenefitItem['kind'], number> = { gain: 0, loss: 1, change: 2 }
+  const sorted = [...items].sort((a, b) => order[a.kind] - order[b.kind])
+  return (
+    <div className="border-t border-rule-2 p-4">
+      <div className="text-sm font-semibold uppercase tracking-wide text-ink-3">What changes for you</div>
+      {sorted.length === 0 ? (
+        <p className="mt-1 text-base text-ink-2">Nothing we can point to for your household beyond the dollar figure above.</p>
+      ) : (
+        <ul className="mt-1.5 space-y-1.5 text-base text-ink-2">
+          {sorted.map((b) => (
+            <li key={b.id} className="flex gap-2.5">
+              <span aria-hidden="true" className={`w-4 shrink-0 text-center font-bold ${KIND[b.kind].cls}`}>
+                {KIND[b.kind].glyph}
+              </span>
+              <span>
+                <span className="sr-only">{KIND[b.kind].label}: </span>
+                {b.text}
+                {b.inherited && b.source && <span className="text-ink-3"> ({b.source.shortName} default)</span>}
+                {b.citations[0] && (
+                  <>
+                    {' '}
+                    <a href={b.citations[0].url} target="_blank" rel="noreferrer" className="whitespace-nowrap text-sm text-ink-3 underline hover:text-ink">
+                      source
+                    </a>
+                  </>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {sorted.some((b) => b.citations.length === 0) && (
+        <p className="mt-1.5 text-sm text-ink-3">Items without a source link are computed from the positions as modeled for {platform.shortName}; “Why this number?” shows the sources.</p>
+      )}
+    </div>
   )
 }
 

@@ -1,6 +1,11 @@
 /** Dated changes to the model or dataset, newest first. Surfaced on the methodology page. */
 export const CHANGELOG: Array<{ date: string; summary: string }> = [
   {
+    date: '2026-09-10',
+    summary:
+      'What changes for you. Each result in the simple view now lists concrete, household-specific consequences beyond the dollar figure: coverage changes and the child credit are derived from the model; child care caps, paid leave, tuition, Social Security increases and what current law keeps come from cited rules that inherit along party lines and name their source. Unfunded plans are shown unranked with the reason. Every card also shows the budget side (more on, less on, deficit effect) and a receipt of where this household’s federal income tax goes today.',
+  },
+  {
     date: '2026-09-09',
     summary:
       'Simple view. The default landing is now a one-question-per-screen flow (household, state and age, income, coverage, who to compare) with large controls and photo cards, ending in a ranked answer where every row opens the "Why?" bridge and the positions and sources. The full comparison (line items, lever matrix, spending, assumptions) is one toggle away and remembered. Fixed the phone layout, where the comparison tables forced the whole page wider than the screen.',

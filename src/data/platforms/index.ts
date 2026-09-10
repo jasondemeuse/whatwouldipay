@@ -3,6 +3,7 @@ import { PARTIES } from './parties'
 import { REPUBLICANS } from './republicans'
 import { DEMOCRATS } from './democrats'
 import { SPENDING } from './spending'
+import { BENEFITS } from './benefits'
 
 /**
  * Every platform the app can compare. Politicians inherit unstated positions from `inheritsFrom`
@@ -15,4 +16,5 @@ import { SPENDING } from './spending'
 export const PLATFORMS: Platform[] = [...PARTIES, ...REPUBLICANS, ...DEMOCRATS].map((p) => ({
   ...p,
   spending: SPENDING[p.id] ?? p.spending,
+  benefits: BENEFITS[p.id] ?? p.benefits,
 }))

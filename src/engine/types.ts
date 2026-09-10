@@ -364,6 +364,42 @@ export interface SpendingPosition {
   citations: Citation[]
 }
 
+/** Inputs a benefit rule can look at: the household, both results, and both parameter sets. */
+export interface BenefitContext {
+  household: Household
+  baseline: HouseholdResult
+  result: HouseholdResult
+  baseParams: PolicyParams
+  params: PolicyParams
+}
+
+export type BenefitKind = 'gain' | 'loss' | 'change'
+
+/**
+ * A concrete, household-specific thing a platform would give or take away, beyond the take-home number:
+ * "child care at $10 a day for your two kids under 5". `applies` returns the sentence for this household,
+ * or null when the rule doesn't reach them.
+ */
+export interface BenefitRule {
+  id: string
+  kind: BenefitKind
+  applies: (ctx: BenefitContext) => string | null
+  confidence: Confidence
+  citations: Citation[]
+}
+
+export interface BenefitItem {
+  id: string
+  kind: BenefitKind
+  text: string
+  /** Platform the rule came from; a party or lane baseline when inherited. Absent for items derived from the model. */
+  source?: Platform
+  inherited: boolean
+  /** Empty for derived items, whose sources live on the position for `area`. */
+  citations: Citation[]
+  area?: PolicyArea
+}
+
 export interface Platform {
   id: string
   name: string
@@ -380,6 +416,8 @@ export interface Platform {
   notes?: string[]
   /** Spending-side commitments by category; inherited from `inheritsFrom` per category when absent. */
   spending?: SpendingPosition[]
+  /** Household-specific benefit rules; inherited along `inheritsFrom` like spending. */
+  benefits?: BenefitRule[]
 }
 
 // ---------- Results ----------

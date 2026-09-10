@@ -29,6 +29,23 @@ describe('dataset lint', () => {
     expect(problems).toEqual([])
   })
 
+  it('every benefit rule is cited with a real URL and ids are unique per platform', () => {
+    const problems: string[] = []
+    for (const p of PLATFORMS) {
+      const seen = new Set<string>()
+      for (const b of p.benefits ?? []) {
+        if (seen.has(b.id)) problems.push(`${p.id}/${b.id}: duplicate benefit id`)
+        seen.add(b.id)
+        if (b.citations.length === 0) problems.push(`${p.id}/${b.id}: no citations`)
+        for (const c of b.citations) {
+          const u = new URL(c.url)
+          if (u.pathname === '/' && !u.search && !u.hash) problems.push(`${p.id}/${b.id}: bare domain ${c.url}`)
+        }
+      }
+    }
+    expect(problems).toEqual([])
+  })
+
   it('inheritance chains resolve and politicians have avatars', () => {
     for (const p of PLATFORMS) {
       if (p.inheritsFrom) expect(ids.has(p.inheritsFrom), `${p.id} inherits from unknown ${p.inheritsFrom}`).toBe(true)

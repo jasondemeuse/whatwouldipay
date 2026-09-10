@@ -74,6 +74,8 @@ export function deficitPhrase(sp: SpendingPosition | undefined): string {
     return `${sp.direction === 'more' ? 'adds to' : 'reduces'} the deficit by an unscored amount${per}`
   }
   const amt = fmtBillions(Math.abs(sp.cost10yr)).replace(/^\+/, '')
-  const window = sp.window ? ` over ${sp.window}` : ' over ten years'
+  // Windows come in three shapes: "2025–2034", "through FY2035", and notes like "2020 plan, 10 years".
+  const w = sp.window
+  const window = !w ? ' over ten years' : /^\d{4}\s*[–-]\s*\d{4}$/.test(w) || /^\d+ years$/.test(w) ? ` over ${w}` : /^(through|vs|by)\b/i.test(w) ? ` ${w}` : ` (${w})`
   return sp.cost10yr >= 0 ? `adds ${amt} to the deficit${window}${per}` : `cuts the deficit by ${amt}${window}${per}`
 }
