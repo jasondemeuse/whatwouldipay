@@ -6,6 +6,7 @@ A prototype web app that lets you enter your household details and compare how d
 - **Engine:** `src/engine/`, federal income tax, payroll tax, CTC/EITC, OBBBA deductions, ACA premium tax credits, Medicaid eligibility, Medicare premiums, rough state income tax, tariff pass-through.
 - **Data:** `src/data/baseline2026.ts` (current law, cited), `src/data/platforms/` (one file per politician / party, every position cited with a confidence level), `src/data/states.ts`.
 - **Research:** `docs/research/`, prior-art survey, data-source survey, and the raw position reports the dataset was built from.
+- **Hosting:** static site, deployed on Vercel from this repo at https://whatwouldipay.org. `vercel.json` sets a strict Content-Security-Policy (no inline scripts; the theme bootstrap is `public/theme-init.js`), security headers, and long-cache rules for hashed assets.
 - **Two views:** the simple view (default) asks one question per screen and ranks the answer; the full comparison (`?v=full`, or the header toggle) has every line item, the policy lever matrix, spending priorities and adjustable assumptions. Both read and write the same state, and every view is a permalink.
 
 ```sh

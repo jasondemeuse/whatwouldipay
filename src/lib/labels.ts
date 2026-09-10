@@ -68,6 +68,7 @@ export function parseMoney(raw: string): [number, boolean] {
 /** Repository and site constants. */
 export const SITE = {
   repo: 'https://github.com/jasondemeuse/whatwouldipay',
+  url: 'https://whatwouldipay.org',
   modelUpdated: '2026-09-09',
   modelUpdatedLabel: 'Sept 9, 2026',
 }
