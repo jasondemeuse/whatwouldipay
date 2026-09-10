@@ -6,9 +6,15 @@ interface Props {
   /** Off-screen node to rasterize for "Save as image". */
   imageNode?: RefObject<HTMLDivElement | null>
   imageName?: string
+  /** `lg` for the simple flow: bigger buttons, no lead-in sentence. */
+  size?: 'sm' | 'lg'
 }
 
-export function ShareBar({ url, title, imageNode, imageName = 'what-would-i-pay.png' }: Props) {
+export function ShareBar({ url, title, imageNode, imageName = 'what-would-i-pay.png', size = 'sm' }: Props) {
+  const btn =
+    size === 'lg'
+      ? 'min-h-11 rounded-lg border border-rule bg-card px-4 text-base font-medium text-ink hover:bg-paper-2'
+      : 'rounded-md border border-rule bg-card px-2.5 py-1 font-medium text-ink-2 hover:bg-paper-2'
   const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
@@ -63,18 +69,18 @@ export function ShareBar({ url, title, imageNode, imageName = 'what-would-i-pay.
   }
 
   return (
-    <div className="no-print flex flex-wrap items-center gap-2 text-xs text-ink-3">
-      <span>This comparison has its own link.</span>
+    <div className={`no-print flex flex-wrap items-center gap-2 text-ink-3 ${size === 'lg' ? 'text-base' : 'text-xs'}`}>
+      {size === 'sm' && <span>This comparison has its own link.</span>}
       <button
         type="button"
         onClick={copy}
-        className="rounded-md border border-rule bg-card px-2.5 py-1 font-medium text-ink-2 hover:bg-paper-2"
+        className={btn}
         aria-live="polite"
       >
         {copied ? 'Copied ✓' : 'Copy link'}
       </button>
       {canShare && (
-        <button type="button" onClick={share} className="rounded-md border border-rule bg-card px-2.5 py-1 font-medium text-ink-2 hover:bg-paper-2">
+        <button type="button" onClick={share} className={btn}>
           Share…
         </button>
       )}
@@ -83,12 +89,12 @@ export function ShareBar({ url, title, imageNode, imageName = 'what-would-i-pay.
           type="button"
           onClick={saveImage}
           disabled={busy}
-          className="rounded-md border border-rule bg-card px-2.5 py-1 font-medium text-ink-2 hover:bg-paper-2 disabled:opacity-60"
+          className={`${btn} disabled:opacity-60`}
         >
           {busy ? 'Rendering…' : 'Save as image'}
         </button>
       )}
-      <button type="button" onClick={() => window.print()} className="rounded-md border border-rule bg-card px-2.5 py-1 font-medium text-ink-2 hover:bg-paper-2">
+      <button type="button" onClick={() => window.print()} className={btn}>
         Print
       </button>
     </div>

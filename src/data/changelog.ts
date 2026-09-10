@@ -3,7 +3,7 @@ export const CHANGELOG: Array<{ date: string; summary: string }> = [
   {
     date: '2026-09-09',
     summary:
-      'Guided view. The default landing is now six questions and a ranked answer, with every row opening the "Why?" bridge; the full comparison (line items, lever matrix, spending, assumptions) is one toggle away and remembered. Fixed the phone layout, where the comparison tables forced the whole page wider than the screen.',
+      'Simple view. The default landing is now a one-question-per-screen flow (household, state and age, income, coverage, who to compare) with large controls and photo cards, ending in a ranked answer where every row opens the "Why?" bridge and the positions and sources. The full comparison (line items, lever matrix, spending, assumptions) is one toggle away and remembered. Fixed the phone layout, where the comparison tables forced the whole page wider than the screen.',
   },
   {
     date: '2026-09-09',

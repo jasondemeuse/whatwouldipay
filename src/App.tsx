@@ -5,7 +5,7 @@ import { ResultsView } from './components/ResultsView'
 import { PositionsPanel } from './components/PositionsPanel'
 import { WhyPanel } from './components/WhyPanel'
 import { Dialog } from './components/Dialog'
-import { GuidedView } from './components/GuidedView'
+import { SimpleFlow } from './components/SimpleFlow'
 import { Segmented } from './components/Segmented'
 import { LeverMatrix } from './components/LeverMatrix'
 import { AssumptionsPanel } from './components/AssumptionsPanel'
@@ -33,21 +33,23 @@ const DEFAULT_SELECTION = ['party-dem', 'party-gop']
 const STORAGE_KEY = 'wwip:v1'
 const VIEW_KEY = 'wwip:view'
 
-type View = 'guided' | 'full'
-/** Guided by default; a shared link or a remembered choice can open the full comparison. */
+type View = 'simple' | 'full'
+/** Simple by default; a shared link or a remembered choice can open the full comparison. */
 function loadView(): View {
   const v = new URLSearchParams(window.location.search).get('v')
-  if (v === 'full' || v === 'guided') return v
+  if (v === 'full' || v === 'simple') return v
   try {
     const s = localStorage.getItem(VIEW_KEY)
-    if (s === 'full' || s === 'guided') return s
+    if (s === 'full' || s === 'simple') return s
   } catch {
     /* ignore */
   }
-  return 'guided'
+  return 'simple'
 }
 
 const PLATFORM_IDS = new Set(PLATFORMS.map((p) => p.id))
+/** A shared link carries the answers, so the simple flow can open straight on the results screen. */
+const OPENED_FROM_LINK = parseUrl(window.location.search, URL_DEFAULT_HOUSEHOLD, PLATFORM_IDS) !== null
 // Dataset facts shown in the hero; module constants because the dataset never changes at runtime.
 const POLITICIAN_COUNT = PLATFORMS.filter((p) => p.kind === 'politician').length
 const SOURCE_COUNT = new Set(PLATFORMS.flatMap((p) => p.positions.flatMap((x) => x.citations.map((c) => c.url)))).size
@@ -180,9 +182,9 @@ export default function App() {
           </a>
           <nav aria-label="Site" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
             <a href="#/methodology" className="underline-offset-2 hover:text-ink hover:underline">
-              Methodology &amp; sources
+              Methodology<span className="hidden sm:inline"> &amp; sources</span>
             </a>
-            <a href={SITE.repo} className="underline-offset-2 hover:text-ink hover:underline" target="_blank" rel="noreferrer">
+            <a href={SITE.repo} className="hidden underline-offset-2 hover:text-ink hover:underline sm:inline" target="_blank" rel="noreferrer">
               Source
             </a>
             {!isMethodology && (
@@ -190,7 +192,7 @@ export default function App() {
                 label="View"
                 value={view}
                 options={[
-                  { v: 'guided', label: 'Guided', title: 'Guided: six questions and a ranked answer' },
+                  { v: 'simple', label: 'Simple', title: 'Simple: one question at a time, then a ranked answer' },
                   { v: 'full', label: 'Full', title: 'Full comparison: every line item, lever and source' },
                 ]}
                 onChange={setView}
@@ -201,9 +203,9 @@ export default function App() {
         </div>
       </header>
 
-      {!isMethodology && (
+      {!isMethodology && view === 'full' && (
         <div className="border-b border-rule-2 bg-paper">
-          <div className={`mx-auto px-4 pb-6 pt-8 ${view === 'guided' ? 'max-w-2xl' : 'max-w-7xl'}`}>
+          <div className="mx-auto max-w-7xl px-4 pb-6 pt-8">
             <h1 className="max-w-3xl font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
               What would each candidate's plan cost you?
             </h1>
@@ -229,8 +231,8 @@ export default function App() {
 
       {isMethodology ? (
         <MethodologyPage />
-      ) : view === 'guided' ? (
-        <GuidedView
+      ) : view === 'simple' ? (
+        <SimpleFlow
           household={household}
           onHousehold={setHousehold}
           selected={selected}
@@ -239,6 +241,7 @@ export default function App() {
           results={results}
           all={PLATFORMS}
           url={url}
+          startAtResults={OPENED_FROM_LINK}
           onExplain={setExplainFor}
           onShowPositions={setPositionsFor}
           onFull={openFull}
@@ -312,7 +315,7 @@ export default function App() {
         </Dialog>
       )}
       {panelPlatform && <PositionsPanel platform={panelPlatform} all={PLATFORMS} onClose={closePositions} />}
-      {!isMethodology && results.length > 0 && !(guessMode && results.some((r) => !revealed[r.platform.id])) && (
+      {!isMethodology && view === 'full' && results.length > 0 && !(guessMode && results.some((r) => !revealed[r.platform.id])) && (
         <MobileSummary baseline={baseline} results={results} />
       )}
     </div>
