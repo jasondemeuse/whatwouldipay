@@ -2,7 +2,7 @@
  * Small outline icons for the simple flow. 24px grid, 1.75px strokes, `currentColor`, so they follow the
  * text color of whatever card they sit in (light, dark, or selected).
  */
-export type IconName = 'person' | 'couple' | 'parent' | 'building' | 'cart' | 'hospital' | 'medicare' | 'none' | 'check'
+export type IconName = 'person' | 'couple' | 'parent' | 'building' | 'cart' | 'hospital' | 'medicare' | 'none' | 'check' | 'list' | 'chart'
 
 export function Icon({ name, className = 'h-8 w-8' }: { name: IconName; className?: string }) {
   return (
@@ -68,6 +68,22 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
+  // Short list of questions
+  list: (
+    <>
+      <rect x="4" y="3.5" width="16" height="17" rx="2" />
+      <path d="M8 9h8M8 12.5h8M8 16h5" />
+    </>
+  ),
+  // Ranked bars
+  chart: (
+    <>
+      <path d="M4 20h16" />
+      <rect x="6" y="11" width="3.5" height="9" rx="0.5" />
+      <rect x="12" y="6" width="3.5" height="14" rx="0.5" />
+      <rect x="18" y="14" width="2.5" height="6" rx="0.5" />
+    </>
+  ),
   // No insurance: circle with a slash
   none: (
     <>

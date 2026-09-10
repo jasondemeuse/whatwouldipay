@@ -11,6 +11,7 @@ import { Avatar } from './Avatar'
 import { Delta } from './Delta'
 import { ShareBar } from './ShareBar'
 import { Icon, type IconName } from './icons'
+import { SITE } from '../lib/labels'
 
 interface Row {
   platform: Platform
@@ -36,9 +37,10 @@ interface Props {
   onFull: () => void
 }
 
-type Step = 'household' | 'where' | 'income' | 'coverage' | 'who' | 'results'
-const STEPS: Array<{ id: Step; label: string }> = [
-  { id: 'household', label: 'You' },
+type Step = 'welcome' | 'household' | 'where' | 'income' | 'coverage' | 'who' | 'results'
+/** The numbered steps. The welcome screen sits in front of them and is not counted. */
+const STEPS: Array<{ id: Exclude<Step, 'welcome'>; label: string }> = [
+  { id: 'household', label: 'Household' },
   { id: 'where', label: 'Where' },
   { id: 'income', label: 'Income' },
   { id: 'coverage', label: 'Coverage' },
@@ -81,7 +83,7 @@ export function SimpleFlow({
   onShowPositions,
   onFull,
 }: Props) {
-  const [step, setStep] = useState<Step>(startAtResults ? 'results' : 'household')
+  const [step, setStep] = useState<Step>(startAtResults ? 'results' : 'welcome')
   const idx = STEPS.findIndex((s) => s.id === step)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const first = useRef(true)
@@ -129,10 +131,18 @@ export function SimpleFlow({
   }
 
   const canContinue = step !== 'who' || selected.length > 0
+  const showExample = () => {
+    const median = PERSONAS.find((p) => p.id === 'median')
+    if (median) onHousehold(median.household)
+    if (selected.length === 0) onSelected(['party-dem', 'party-gop'])
+    go('results')
+  }
 
   return (
     <div className="simple-flow text-lg text-ink">
-      <main id="main" className="mx-auto max-w-3xl px-4 pb-32 pt-8 sm:pt-12">
+      <main id="main" className={`mx-auto max-w-3xl px-4 pt-8 sm:pt-12 ${step === 'welcome' ? 'pb-12' : 'pb-32'}`}>
+        {step === 'welcome' && <Welcome ref={headingRef} onStart={() => go('household')} onExample={showExample} />}
+
         {step === 'household' && (
           <Screen
             ref={headingRef}
@@ -263,7 +273,8 @@ export function SimpleFlow({
         )}
       </main>
 
-      {/* Progress and navigation, pinned to the bottom like a form wizard. */}
+      {/* Progress and navigation, pinned to the bottom like a form wizard. The welcome screen has its own buttons. */}
+      {step !== 'welcome' && (
       <nav aria-label="Steps" className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-card/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
           <button
@@ -313,11 +324,69 @@ export function SimpleFlow({
           )}
         </div>
       </nav>
+      )}
     </div>
   )
 }
 
 /* ---------- Screens and controls ---------- */
+
+const Welcome = forwardRef<HTMLHeadingElement, { onStart: () => void; onExample: () => void }>(function Welcome({ onStart, onExample }, ref) {
+  const steps: Array<{ icon: IconName; text: string }> = [
+    { icon: 'list', text: 'Answer five quick questions about your household. It takes about a minute.' },
+    { icon: 'couple', text: 'Pick the candidates or parties you want to compare.' },
+    { icon: 'chart', text: 'See what you would keep, what you would get, and what it costs the budget.' },
+  ]
+  return (
+    <section className="flex min-h-[calc(100vh-9rem)] flex-col justify-center">
+      <p className="text-base font-semibold uppercase tracking-wide text-ink-3">Election 2028</p>
+      <h1 ref={ref} tabIndex={-1} className="mt-2 font-serif text-4xl font-semibold leading-tight tracking-tight outline-none sm:text-5xl">
+        What would each candidate's plan cost you?
+      </h1>
+      <p className="mt-5 text-xl text-ink-2">
+        We take the tax and health care plans that 2028 presidential hopefuls have actually published, run them against your household, and
+        show what changes for you. Every number links to its source.
+      </p>
+      <ol className="mt-7 space-y-3">
+        {steps.map((s, i) => (
+          <li key={s.icon} className="flex items-center gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink">
+              <Icon name={s.icon} className="h-6 w-6" />
+            </span>
+            <span className="text-lg text-ink-2">
+              <span className="sr-only">Step {i + 1}: </span>
+              {s.text}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button
+          type="button"
+          onClick={onStart}
+          className="min-h-14 rounded-lg bg-ink px-8 text-lg font-semibold text-card transition-colors hover:bg-ink/90"
+        >
+          Start
+        </button>
+        <button
+          type="button"
+          onClick={onExample}
+          className="min-h-14 rounded-lg border border-rule px-6 text-lg font-medium text-ink-2 transition-colors hover:bg-paper-2"
+        >
+          Show me an example first
+        </button>
+      </div>
+      <p className="mt-8 text-base text-ink-3">
+        Free and open source. Nothing you type leaves your device. Not affiliated with any campaign or party. Tax year 2026, updated{' '}
+        {SITE.modelUpdatedLabel}.{' '}
+        <a href="#/methodology" className="underline hover:text-ink">
+          How the math works
+        </a>
+        .
+      </p>
+    </section>
+  )
+})
 
 const Screen = forwardRef<HTMLHeadingElement, { title: string; lead?: string; children: React.ReactNode }>(function Screen({ title, lead, children }, ref) {
   return (

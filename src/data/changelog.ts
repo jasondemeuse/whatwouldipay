@@ -2,6 +2,10 @@
 export const CHANGELOG: Array<{ date: string; summary: string }> = [
   {
     date: '2026-09-10',
+    summary: 'Welcome screen in front of the simple flow: what the tool does, how it works in three steps, and a Start button, with a one-tap example for people who want to see the payoff first. The Simple/Full toggle is hidden on phones in the simple view.',
+  },
+  {
+    date: '2026-09-10',
     summary:
       'What changes for you. Each result in the simple view now lists concrete, household-specific consequences beyond the dollar figure: coverage changes and the child credit are derived from the model; child care caps, paid leave, tuition, Social Security increases and what current law keeps come from cited rules that inherit along party lines and name their source. Unfunded plans are shown unranked with the reason. Every card also shows the budget side (more on, less on, deficit effect) and a receipt of where this household’s federal income tax goes today.',
   },

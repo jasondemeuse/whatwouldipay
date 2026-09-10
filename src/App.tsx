@@ -192,6 +192,7 @@ export default function App() {
               Source
             </a>
             {!isMethodology && (
+              <span className={view === 'simple' ? 'hidden sm:inline-flex' : 'inline-flex'}>
               <Segmented<View>
                 label="View"
                 value={view}
@@ -201,6 +202,7 @@ export default function App() {
                 ]}
                 onChange={setView}
               />
+              </span>
             )}
             <ThemeToggle />
           </nav>
