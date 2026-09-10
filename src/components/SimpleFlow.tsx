@@ -8,6 +8,7 @@ import { usd } from '../lib/format'
 import { Avatar } from './Avatar'
 import { Delta } from './Delta'
 import { ShareBar } from './ShareBar'
+import { Icon, type IconName } from './icons'
 
 interface Row {
   platform: Platform
@@ -43,18 +44,18 @@ const STEPS: Array<{ id: Step; label: string }> = [
 ]
 const MAX_SELECTED = 8
 
-const FILING_CARDS: Array<{ v: FilingStatus; label: string; hint: string; icon: string }> = [
-  { v: 'single', label: 'Just me', hint: 'Single, no dependents', icon: '👤' },
-  { v: 'mfj', label: 'Married', hint: 'We file a joint return', icon: '👥' },
-  { v: 'hoh', label: 'Single parent', hint: 'I claim a child or dependent', icon: '👨‍👧' },
+const FILING_CARDS: Array<{ v: FilingStatus; label: string; hint: string; icon: IconName }> = [
+  { v: 'single', label: 'Just me', hint: 'Single, no dependents', icon: 'person' },
+  { v: 'mfj', label: 'Married', hint: 'We file a joint return', icon: 'couple' },
+  { v: 'hoh', label: 'Single parent', hint: 'I claim a child or dependent', icon: 'parent' },
 ]
 
-const COVERAGE_CARDS: Array<{ v: HealthCoverage; label: string; hint: string; icon: string }> = [
-  { v: 'employer', label: 'Through work', hint: 'My or my spouse’s employer plan', icon: '🏢' },
-  { v: 'marketplace', label: 'Healthcare.gov', hint: 'An Obamacare marketplace plan', icon: '🛒' },
-  { v: 'medicaid', label: 'Medicaid', hint: 'State health coverage', icon: '🏥' },
-  { v: 'medicare', label: 'Medicare', hint: 'Age 65+ or disability', icon: '🎂' },
-  { v: 'uninsured', label: 'No insurance', hint: 'I pay out of pocket', icon: '🚫' },
+const COVERAGE_CARDS: Array<{ v: HealthCoverage; label: string; hint: string; icon: IconName }> = [
+  { v: 'employer', label: 'Through work', hint: 'My or my spouse’s employer plan', icon: 'building' },
+  { v: 'marketplace', label: 'Healthcare.gov', hint: 'An Obamacare marketplace plan', icon: 'cart' },
+  { v: 'medicaid', label: 'Medicaid', hint: 'State health coverage', icon: 'hospital' },
+  { v: 'medicare', label: 'Medicare', hint: 'Age 65+ or disability', icon: 'medicare' },
+  { v: 'uninsured', label: 'No insurance', hint: 'I pay out of pocket', icon: 'none' },
 ]
 
 const INCOME_PICKS = [30_000, 50_000, 75_000, 100_000, 150_000, 250_000]
@@ -333,7 +334,7 @@ function Choices({
   columns = 3,
 }: {
   label: string
-  options: Array<{ v: string; label: string; hint: string; icon: string; on: boolean }>
+  options: Array<{ v: string; label: string; hint: string; icon: IconName; on: boolean }>
   onPick: (v: string) => void
   columns?: 2 | 3
 }) {
@@ -352,18 +353,14 @@ function Choices({
               o.on ? 'border-ink bg-ink text-card' : 'border-rule bg-card hover:border-ink-4 hover:bg-paper-2'
             }`}
           >
-            <span aria-hidden="true" className="text-3xl">
-              {o.icon}
+            <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${o.on ? 'bg-card/15' : 'bg-paper-2'}`}>
+              <Icon name={o.icon} className="h-7 w-7" />
             </span>
             <span className="min-w-0">
               <span className="block text-xl font-semibold leading-tight">{o.label}</span>
               <span className={`block text-base ${o.on ? 'text-card/80' : 'text-ink-3'}`}>{o.hint}</span>
             </span>
-            {o.on && (
-              <span aria-hidden="true" className="ml-auto text-2xl">
-                ✓
-              </span>
-            )}
+            {o.on && <Icon name="check" className="ml-auto h-7 w-7 shrink-0" />}
           </button>
         ))}
       </div>
@@ -484,8 +481,8 @@ function CandidateGrid({ all, selected, onToggle, full }: { all: Platform[]; sel
                     } disabled:cursor-not-allowed disabled:opacity-40`}
                   >
                     {on && (
-                      <span aria-hidden="true" className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-card text-base font-bold text-ink">
-                        ✓
+                      <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-card text-ink">
+                        <Icon name="check" className="h-4 w-4" />
                       </span>
                     )}
                     <Avatar platform={p} size={88} />
