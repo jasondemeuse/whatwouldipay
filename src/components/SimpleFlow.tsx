@@ -4,6 +4,8 @@ import type { FilingStatus, HealthCoverage, Household, HouseholdResult, Platform
 import { STATE_LIST } from '../data/states'
 import { PERSONAS } from '../data/personas'
 import { AREA_PHRASE, PARTY_DOT, PARTY_NAME, parseMoney } from '../lib/labels'
+import { deficitPhrase, spendingSummary } from '../engine/spending'
+import { RECEIPT, RECEIPT_SOURCE } from '../data/spending'
 import { usd } from '../lib/format'
 import { Avatar } from './Avatar'
 import { Delta } from './Delta'
@@ -249,6 +251,7 @@ export function SimpleFlow({
             ref={headingRef}
             baseline={baseline}
             results={results}
+            all={all}
             url={url}
             onExplain={onExplain}
             onShowPositions={onShowPositions}
@@ -510,6 +513,7 @@ const ResultsScreen = forwardRef<
   {
     baseline: HouseholdResult
     results: Row[]
+    all: Platform[]
     url: string
     onExplain: (id: string) => void
     onShowPositions: (id: string) => void
@@ -517,16 +521,20 @@ const ResultsScreen = forwardRef<
     onEdit: () => void
     onFull: () => void
   }
->(function ResultsScreen({ baseline, results, url, onExplain, onShowPositions, onChangeWho, onEdit, onFull }, ref) {
-  const funded = results.filter((r) => !r.result.unfunded)
-  const pool = funded.length ? funded : results
-  const ranked = [...results].sort((a, b) => b.result.netIncome - a.result.netIncome)
-  const best = [...pool].sort((a, b) => b.result.netIncome - a.result.netIncome)[0]
+>(function ResultsScreen({ baseline, results, all, url, onExplain, onShowPositions, onChangeWho, onEdit, onFull }, ref) {
+  const byNet = (a: Row, b: Row) => b.result.netIncome - a.result.netIncome
+  // Platforms that remove taxes without a modeled replacement can't be ranked against the rest: the
+  // "gain" is only one side of the ledger. They get their own section with the reason spelled out.
+  const ranked = results.filter((r) => !r.result.unfunded).sort(byNet)
+  const unranked = results.filter((r) => r.result.unfunded).sort(byNet)
+  const best = ranked[0]
   const bestDelta = best ? best.result.netIncome - baseline.netIncome : 0
-  const allSame = results.every((r) => Math.abs(r.result.netIncome - baseline.netIncome) < 1)
+  const allSame = ranked.length > 0 && ranked.every((r) => Math.abs(r.result.netIncome - baseline.netIncome) < 1)
+  const bestSpend = best ? spendingSummary(best.platform, all) : undefined
 
   let title: React.ReactNode
   if (results.length === 0) title = 'Pick at least one candidate to see your results.'
+  else if (ranked.length === 0) title = 'The plans you picked can’t be priced fairly. See why below.'
   else if (allSame) title = 'None of these plans changes what you keep.'
   else if (bestDelta > 0)
     title = (
@@ -548,65 +556,44 @@ const ResultsScreen = forwardRef<
       <h1 ref={ref} tabIndex={-1} className="mt-1 font-serif text-3xl font-semibold leading-tight tracking-tight outline-none sm:text-4xl">
         {title}
       </h1>
-      <p className="mt-3 text-xl text-ink-2">
-        Today, under current law, your household keeps about <span className="money font-semibold text-ink">{usd(baseline.netIncome)}</span> a year after
-        federal and state taxes and health costs. Here is how each plan compares.
+      {best && bestSpend && !allSame && (
+        <p className="mt-3 text-xl text-ink-2">
+          The other side of that: {best.platform.shortName}’s plan would {tradeoffSentence(bestSpend)}.
+        </p>
+      )}
+      <p className="mt-3 text-lg text-ink-2">
+        Today your household keeps about <span className="money font-semibold text-ink">{usd(baseline.netIncome)}</span> a year after federal and
+        state taxes and health costs. Lower taxes and bigger benefits both have a price: programs shrink, or the government borrows. Each card
+        below shows both sides.
       </p>
 
       {ranked.length > 0 && (
         <ol className="mt-6 space-y-3" aria-label="Ranked by money left after taxes and healthcare">
-          {ranked.map(({ platform, result, attribution, sameAs }, i) => {
-            const delta = result.netIncome - baseline.netIncome
-            const top = [...attribution.steps].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0]
-            const reason = sameAs
-              ? sameAs === 'baseline'
-                ? 'Nothing in this plan changes your taxes or health costs.'
-                : `Same result for you as ${sameAs}.`
-              : top
-                ? `Mostly because of ${AREA_PHRASE[top.position.area]}.`
-                : 'No change for your household.'
-            return (
-              <li key={platform.id} className="card rounded-card border border-rule bg-card">
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 p-4 sm:grid-cols-[auto_auto_1fr_auto]">
-                  <span className="hidden w-6 text-center text-base font-semibold text-ink-4 sm:block" aria-hidden="true">
-                    {i + 1}
-                  </span>
-                  <Avatar platform={platform} size={64} className="shrink-0" />
-                  <div className="min-w-0">
-                    <div className="text-xl font-semibold leading-tight">{platform.name}</div>
-                    <div className="mt-0.5 text-base text-ink-2">{reason}</div>
-                    {result.unfunded && <div className="mt-0.5 text-sm text-ink-3">Removes taxes without saying what replaces them, so this gain is overstated.</div>}
-                  </div>
-                  <div className="col-span-2 flex items-baseline justify-between gap-3 border-t border-rule-2 pt-2 sm:col-span-1 sm:block sm:border-0 sm:pt-0 sm:text-right">
-                    <div className="text-2xl font-bold leading-none">
-                      <Delta v={delta} animate />
-                    </div>
-                    <div className="money text-sm text-ink-3 sm:mt-1">{usd(result.netIncome)} a year</div>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 border-t border-rule-2 px-4 py-2.5">
-                  <button
-                    type="button"
-                    onClick={() => onExplain(platform.id)}
-                    aria-haspopup="dialog"
-                    className="min-h-11 rounded-lg border border-rule px-4 text-base font-medium text-ink hover:bg-paper-2"
-                  >
-                    Why this number?
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onShowPositions(platform.id)}
-                    aria-haspopup="dialog"
-                    className="min-h-11 rounded-lg border border-rule px-4 text-base font-medium text-ink-2 hover:bg-paper-2"
-                  >
-                    Positions and sources
-                  </button>
-                </div>
-              </li>
-            )
-          })}
+          {ranked.map((row, i) => (
+            <ResultCard key={row.platform.id} row={row} rank={i + 1} baseline={baseline} all={all} onExplain={onExplain} onShowPositions={onShowPositions} />
+          ))}
         </ol>
       )}
+
+      {unranked.length > 0 && (
+        <section className="mt-8" aria-labelledby="unranked-h">
+          <h2 id="unranked-h" className="text-xl font-semibold">
+            Not ranked: the taxes go away, but so do the programs
+          </h2>
+          <p className="mt-1 text-base text-ink-2">
+            {unranked.length === 1 ? 'This plan' : 'These plans'} would end federal programs (Medicare, Medicaid, Social Security or the income tax
+            itself) without saying what replaces them. We can price the taxes you would stop paying, but not the coverage or benefits you would lose,
+            so the number below is only half the story and is not compared with the others.
+          </p>
+          <ol className="mt-3 space-y-3">
+            {unranked.map((row) => (
+              <ResultCard key={row.platform.id} row={row} baseline={baseline} all={all} onExplain={onExplain} onShowPositions={onShowPositions} muted />
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <Receipt baseline={baseline} />
 
       <div className="mt-8 flex flex-wrap gap-3">
         <button type="button" onClick={onChangeWho} className="min-h-12 rounded-lg border border-rule px-5 text-base font-medium hover:bg-paper-2">
@@ -627,8 +614,9 @@ const ResultsScreen = forwardRef<
 
       <div className="mt-6 rounded-card border border-dashed border-rule p-5 text-base text-ink-2">
         <p>
-          These are estimates for tax year 2026 from each candidate’s published positions, with a source behind every number. We don’t model
-          anything about character or electability.{' '}
+          These are estimates for tax year 2026 from each candidate’s published positions, with a source behind every number. Spending figures
+          come from the Congressional Budget Office where it has scored a plan, and otherwise from the named scorer or the campaign itself. We
+          don’t model anything about character or electability.{' '}
           <a href="#/methodology" className="underline hover:text-ink">
             How the math works
           </a>
@@ -636,9 +624,202 @@ const ResultsScreen = forwardRef<
           <button type="button" onClick={onFull} className="underline hover:text-ink">
             full comparison
           </button>{' '}
-          for every line item, the policy lever matrix and what each plan would spend more or less on.
+          for every line item and the full spending table.
         </p>
       </div>
     </section>
   )
 })
+
+function list(xs: string[]): string {
+  if (xs.length <= 1) return xs.join('')
+  if (xs.length === 2) return `${xs[0]} and ${xs[1]}`
+  return `${xs.slice(0, -1).join(', ')}, and ${xs[xs.length - 1]}`
+}
+
+function tradeoffSentence(s: ReturnType<typeof spendingSummary>): string {
+  const parts: string[] = []
+  if (s.more.length) parts.push(`spend more on ${list(s.more)}`)
+  if (s.less.length) parts.push(`less on ${list(s.less)}`)
+  const spend = parts.length ? parts.join(' and ') : 'leave spending about where it is'
+  return `${spend}, and ${deficitPhrase(s.deficit)}`
+}
+
+function ResultCard({
+  row,
+  rank,
+  baseline,
+  all,
+  onExplain,
+  onShowPositions,
+  muted = false,
+}: {
+  row: Row
+  rank?: number
+  baseline: HouseholdResult
+  all: Platform[]
+  onExplain: (id: string) => void
+  onShowPositions: (id: string) => void
+  muted?: boolean
+}) {
+  const { platform, result, attribution, sameAs } = row
+  const delta = result.netIncome - baseline.netIncome
+  const top = [...attribution.steps].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0]
+  const reason = sameAs
+    ? sameAs === 'baseline'
+      ? 'Nothing in this plan changes your taxes or health costs.'
+      : `Same result for you as ${sameAs}.`
+    : top
+      ? `Mostly because of ${AREA_PHRASE[top.position.area]}.`
+      : 'No change for your household.'
+  const spend = spendingSummary(platform, all)
+  return (
+    <li className={`card rounded-card border bg-card ${muted ? 'border-dashed border-rule' : 'border-rule'}`}>
+      <div className="flex items-center gap-4 p-4">
+        {rank !== undefined && (
+          <span className="hidden w-6 text-center text-base font-semibold text-ink-4 sm:block" aria-hidden="true">
+            {rank}
+          </span>
+        )}
+        <Avatar platform={platform} size={64} className="shrink-0" />
+        <div className="min-w-0">
+          <div className="text-xl font-semibold leading-tight">{platform.name}</div>
+          <div className="mt-0.5 text-base text-ink-3">{platform.role.replace(/\s*\(.*\)$/, '')}</div>
+        </div>
+      </div>
+      <div className="grid border-t border-rule-2 sm:grid-cols-2 sm:divide-x sm:divide-rule-2">
+        <div className="p-4">
+          <div className="text-sm font-semibold uppercase tracking-wide text-ink-3">Your wallet</div>
+          <div className="mt-1 flex items-baseline gap-3">
+            <span className={`text-2xl font-bold leading-none ${muted ? 'opacity-70' : ''}`}>
+              <Delta v={delta} animate />
+            </span>
+            <span className="money text-sm text-ink-3">{usd(result.netIncome)} a year</span>
+          </div>
+          <div className="mt-1.5 text-base text-ink-2">{muted ? 'Taxes only. What you would lose in coverage or benefits is not priced.' : reason}</div>
+        </div>
+        <div className="border-t border-rule-2 p-4 sm:border-t-0">
+          <div className="text-sm font-semibold uppercase tracking-wide text-ink-3">The budget</div>
+          <ul className="mt-1 space-y-1 text-base text-ink-2">
+            {spend.more.length > 0 && (
+              <li>
+                <span className="font-semibold text-gain">▲ More</span> on {list(spend.more)}
+              </li>
+            )}
+            {spend.less.length > 0 && (
+              <li>
+                <span className="font-semibold text-loss">▼ Less</span> on {list(spend.less)}
+              </li>
+            )}
+            {spend.more.length === 0 && spend.less.length === 0 && <li>No stated change to what the government spends on.</li>}
+            <li className="text-ink-3">{capitalize(deficitPhrase(spend.deficit))}.</li>
+          </ul>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2 border-t border-rule-2 px-4 py-2.5">
+        <button type="button" onClick={() => onExplain(platform.id)} aria-haspopup="dialog" className="min-h-11 rounded-lg border border-rule px-4 text-base font-medium text-ink hover:bg-paper-2">
+          Why this number?
+        </button>
+        <button
+          type="button"
+          onClick={() => onShowPositions(platform.id)}
+          aria-haspopup="dialog"
+          className="min-h-11 rounded-lg border border-rule px-4 text-base font-medium text-ink-2 hover:bg-paper-2"
+        >
+          Positions, spending and sources
+        </button>
+      </div>
+    </li>
+  )
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+/** Where this household's federal income tax goes today, in dollars, so "less tax" has a visible other side. */
+function Receipt({ baseline }: { baseline: HouseholdResult }) {
+  const incomeTax = Math.max(0, baseline.federalIncomeTax)
+  const rows = RECEIPT.map((r) => ({ ...r, dollars: incomeTax * r.share }))
+  const spent = rows.filter((r) => !r.borrowed).sort((a, b) => b.share - a.share)
+  const borrowed = rows.find((r) => r.borrowed)
+  const shown = spent.slice(0, 6)
+  const rest = spent.slice(6).reduce((n, r) => n + r.dollars, 0)
+  return (
+    <section className="mt-8 rounded-card border border-rule bg-card p-5" aria-labelledby="receipt-h">
+      <h2 id="receipt-h" className="text-xl font-semibold">
+        What your taxes buy today
+      </h2>
+      {incomeTax <= 0 ? (
+        <p className="mt-2 text-base text-ink-2">
+          You owe no federal income tax under current law, because your credits are larger than your tax. Your{' '}
+          <span className="money font-semibold text-ink">{usd(baseline.payrollTax)}</span> in payroll taxes still fund Social Security and Medicare.
+        </p>
+      ) : (
+        <>
+          <p className="mt-1 text-base text-ink-2">
+            Your <span className="money font-semibold text-ink">{usd(incomeTax)}</span> in federal income tax is split roughly like this. Another{' '}
+            <span className="money font-semibold text-ink">{usd(baseline.payrollTax)}</span> in payroll taxes goes to Social Security and Medicare.
+          </p>
+          <div className="mt-3 flex h-5 w-full overflow-hidden rounded bg-paper-2" role="img" aria-label="Your federal income tax split by budget function">
+            {rows.map((r, i) => (
+              <div
+                key={r.id}
+                title={`${r.label}: ${usd(r.dollars)}`}
+                style={{
+                  width: `${r.share * 100}%`,
+                  background: r.borrowed ? 'repeating-linear-gradient(135deg, var(--color-ink-4) 0 3px, transparent 3px 6px)' : `oklch(${0.8 - i * 0.04} 0.04 ${200 + i * 12})`,
+                }}
+                className="h-full border-r border-card last:border-r-0"
+              />
+            ))}
+          </div>
+          <ul className="money mt-3 grid gap-x-8 gap-y-1 text-base text-ink-2 sm:grid-cols-2">
+            {shown.map((r) => (
+              <li key={r.id} className="flex justify-between gap-3">
+                <span>{shortLabel(r.id, r.label)}</span>
+                <span className="font-semibold text-ink">{usd(r.dollars)}</span>
+              </li>
+            ))}
+            {rest > 0 && (
+              <li className="flex justify-between gap-3">
+                <span>Everything else</span>
+                <span className="font-semibold text-ink">{usd(rest)}</span>
+              </li>
+            )}
+            {borrowed && (
+              <li className="flex justify-between gap-3 text-ink-3">
+                <span>Spent but not paid for (borrowed)</span>
+                <span className="font-semibold">{usd(borrowed.dollars)}</span>
+              </li>
+            )}
+          </ul>
+          <p className="mt-3 text-sm text-ink-3">
+            Shares from the{' '}
+            <a href={RECEIPT_SOURCE.url} target="_blank" rel="noreferrer" className="underline hover:text-ink">
+              National Priorities Project
+            </a>{' '}
+            (fiscal 2025) and the Treasury. About a third of what Washington spends is borrowed, so a dollar of tax cut today is a dollar
+            someone pays later.
+          </p>
+        </>
+      )}
+    </section>
+  )
+}
+
+function shortLabel(id: string, label: string): string {
+  const short: Record<string, string> = {
+    health: 'Health care (Medicaid, Medicare)',
+    interest: 'Interest on the national debt',
+    military: 'Military',
+    veterans: 'Veterans',
+    income: 'Unemployment, SSI, tax credits',
+    food: 'Food aid and farms',
+    education: 'Education',
+    housing: 'Housing',
+    energy: 'Energy and environment',
+    law: 'Border, immigration and law enforcement',
+  }
+  return short[id] ?? label
+}

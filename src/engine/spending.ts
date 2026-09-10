@@ -52,3 +52,28 @@ export function fmtBillions(b: number): string {
   const abs = Math.abs(b)
   return abs >= 1000 ? `${sign}$${(abs / 1000).toFixed(abs >= 10000 ? 0 : 1)}T` : `${sign}$${Math.round(abs)}B`
 }
+
+/** Plain-language digest of a platform's spending side for compact displays. */
+export function spendingSummary(platform: Platform, all: Platform[]): { more: string[]; less: string[]; deficit?: SpendingPosition } {
+  const rows = resolvedSpending(platform, all)
+  const label = (id: string) => SPENDING_CATEGORIES.find((c) => c.id === id)?.label.toLowerCase().replace(' & ', ' and ') ?? id
+  return {
+    more: rows.filter((s) => s.category !== 'deficit' && s.direction === 'more').map((s) => label(s.category)),
+    less: rows.filter((s) => s.category !== 'deficit' && s.direction === 'less').map((s) => label(s.category)),
+    deficit: rows.find((s) => s.category === 'deficit'),
+  }
+}
+
+/** "adds $4.1T to the deficit over 2025–2034, per CBO", or "its deficit effect is unscored, per Urban Institute". */
+export function deficitPhrase(sp: SpendingPosition | undefined): string {
+  if (!sp || sp.direction === 'none') return 'has no stated deficit effect'
+  const who = scorerLabel(sp)
+  const per = who ? `, per ${who}` : ''
+  if (sp.cost10yr === undefined) {
+    if (sp.direction === 'mixed') return `its deficit effect is unscored${per}`
+    return `${sp.direction === 'more' ? 'adds to' : 'reduces'} the deficit by an unscored amount${per}`
+  }
+  const amt = fmtBillions(Math.abs(sp.cost10yr)).replace(/^\+/, '')
+  const window = sp.window ? ` over ${sp.window}` : ' over ten years'
+  return sp.cost10yr >= 0 ? `adds ${amt} to the deficit${window}${per}` : `cuts the deficit by ${amt}${window}${per}`
+}
